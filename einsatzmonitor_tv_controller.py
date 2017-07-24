@@ -7,10 +7,13 @@ import os
 import logging
 from time import sleep
 
+#Ask every x seconds if an alarm happend
 POLLING_INTERVAL = 5 #seconds
+#How long should the tv be activated after an alarm happend?
 TV_ON_TIME = 1800 #seconds
 BASE_URL = "https://api.blaulichtsms.net/blaulicht/api/alarm/v1/dashboard/"
 
+#Fill in your Einsatzmonitor credentials
 CUSTOMER_ID = ""
 USERNAME = ""
 PASSWORD = ""
