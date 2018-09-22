@@ -1,0 +1,14 @@
+[Unit]
+Description=blaulichtSMS Einsatzmonitor
+Documentation=
+After=network-online.target graphical.target
+Wants=network-online.target graphical.target
+
+[Service]
+WorkingDirectory=
+ExecStart=/usr/bin/python3 main.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

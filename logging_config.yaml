@@ -1,0 +1,24 @@
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: simple
+    level: DEBUG
+    stream: ext://sys.stdout
+  file:
+    backupCount: 6
+    class: logginghandlers.TimedRotatingFileSMTPHandler
+    configfilename: config.ini
+    filename: log/alarmmonitor.log
+    formatter: simple
+    level: DEBUG
+    send_log: false
+    when: midnight
+root:
+  handlers:
+  - console
+  - file
+  level: DEBUG
+version: 1

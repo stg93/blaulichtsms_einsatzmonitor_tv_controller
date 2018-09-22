@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Make sure only root can run this script
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
+
+# Check dependencies
+requiredAptDependencies=( "cec-utils" "libcec4-dev" )
+missingAptDependencies=()
+
+echo "Checking apt dependencies..."
+for elem in "${requiredAptDependencies[@]}"
+do
+	dpkg -s $elem &> /dev/null
+	if [ $? -ne 0 ]
+	then
+		missingAptDependencies=("${missingAptDependencies[@]}" "$elem")
+	fi
+done
+
+if [ ${#missingAptDependencies[@]} -gt 0 ]
+then
+	printf "Please install missing apt packages via\n"
+	printf "\t'sudo apt install"
+	for elem in "${missingAptDependencies[@]}"
+	do
+		printf " $elem"
+	done
+	printf "'\n"
+else
+	echo "All apt dependencies are met"
+fi
+echo ""
+
+echo "Checking pip dependencies..."
+requiredPipDependencies=( "requests" "cec" )
+missingPipDependencies=()
+
+for elem in "${requiredPipDependencies[@]}"
+do
+	python3 -c "import $elem" &> /dev/null
+	if [ $? -ne 0 ]
+	then
+		missingPipDependencies=("${missingPipDependencies[@]}" "$elem")
+	fi
+done
+
+if [ ${#missingPipDependencies[@]} -gt 0 ]
+then
+	printf "Please install missing pip packages via\n"
+	printf "\t'pip3 install"
+	for elem in "${missingPipDependencies[@]}"
+	do
+		printf " $elem"
+	done
+	printf "'\n"
+else
+	echo "All pip dependencies are met"
+fi
+echo ""
+
+if [ ${#missingAptDependencies[@]} -gt 0 ] || [ ${#missingPipDependencies[@]} -gt 0 ]
+then
+	exit 1
+fi
+
+
+# Starting installation
+echo "Starting installation..."
+echo "Setting up systemd service..."
+sed -i "s|WorkingDirectory=.*|WorkingDirectory=$(pwd)|g" alarmmonitor.service \
+&& ln -s "$(pwd)"/alarmmonitor.service /etc/systemd/system/alarmmonitor.service \
+&& systemctl enable alarmmonitor \
+&& systemctl start alarmmonitor
+echo ""
+
+
+if [ $? -ne 0 ]; then
+    echo "Errors occured during installation" > /dev/stderr
+    exit 1
+fi
+echo "Installation successful"
