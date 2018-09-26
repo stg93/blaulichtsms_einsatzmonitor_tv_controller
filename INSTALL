@@ -36,7 +36,7 @@ fi
 echo ""
 
 echo "Checking pip dependencies..."
-requiredPipDependencies=( "requests" "cec" )
+requiredPipDependencies=( "requests" "cec" "yaml" )
 missingPipDependencies=()
 
 for elem in "${requiredPipDependencies[@]}"
@@ -44,7 +44,12 @@ do
 	python3 -c "import $elem" &> /dev/null
 	if [ $? -ne 0 ]
 	then
-		missingPipDependencies=("${missingPipDependencies[@]}" "$elem")
+    if [ "$elem" = "yaml" ]
+    then
+      missingPipDependencies=("${missingPipDependencies[@]}" "pyyaml")
+    else
+      missingPipDependencies=("${missingPipDependencies[@]}" "$elem")
+    fi
 	fi
 done
 
@@ -53,6 +58,11 @@ then
 	printf "Please install missing pip packages via\n"
 	printf "\t'pip3 install"
 	for elem in "${missingPipDependencies[@]}"
+	do
+		printf " $elem"
+	done
+  printf " && sudo pip3 install"
+  for elem in "${missingPipDependencies[@]}"
 	do
 		printf " $elem"
 	done
