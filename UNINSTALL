@@ -10,8 +10,7 @@ fi
 # Starting deinstallation
 echo "Starting deinstallation..."
 systemctl stop alarmmonitor \
-&& systemctl disable alarmmonitor \
-&& rm /etc/systemd/system/alarmmonitor.service
+&& systemctl disable alarmmonitor
 echo ""
 
 
