@@ -27,8 +27,6 @@ sudo apt install cec-utils libcec4-dev
 pip3 install pyyaml cec && sudo pip3 install pyyaml cec
 ```
 
-Die Anzeige des blaulichtSMS Einstazmonitor Dashboards erfolgt im Chromium Browser, welcher standardmäßig auf Raspbian installiert ist. Das Einloggen in das Dashboard im Chromium Browser erfolgt nicht automatisch. Daher muss der Login einmal manuell in Chromium erfolgen. Bisher scheint es so, dass dieses manuelle Login nicht abläuft und somit nicht wiederholt werden muss.
-
 ## Installation
 Zuerst muss via
 

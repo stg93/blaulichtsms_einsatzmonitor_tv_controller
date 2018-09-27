@@ -10,8 +10,9 @@ class ChromiumBrowserController:
     blaulichtSMS Einsatzmonitor dashboard.
     """
 
-    def __init__(self):
+    def __init__(self, session_id):
         self.logger = logging.getLogger(__name__)
+        self.session_id = session_id
 
     def start(self):
         self._delete_crash_exit()
@@ -24,7 +25,8 @@ class ChromiumBrowserController:
                 "--disable-session-crashed-bubble",
                 "--disable-infobars",
                 "--start-fullscreen",
-                "https://dashboard.blaulichtsms.net"
+                "https://dashboard.blaulichtsms.net/#/login?token="
+                + self.session_id
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL

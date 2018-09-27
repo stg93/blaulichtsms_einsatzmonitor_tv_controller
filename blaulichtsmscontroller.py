@@ -33,9 +33,9 @@ class BlaulichtSmsController:
         self.username = username
         self.password = password
         self.last_alarm_check = datetime.now()
-        self.session = self._get_session()
+        self.session = self.get_session()
 
-    def _get_session(self):
+    def get_session(self):
         try:
             self.logger.info("Initialising blaulichtSMS session...")
             content = {

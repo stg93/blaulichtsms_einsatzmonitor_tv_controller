@@ -20,7 +20,8 @@ class AlarmMonitorTest:
             config["blaulichtSMS Einsatzmonitor"]["password"]
         )
         self.hdmi_cec_controller = HdmiCecController()
-        self.browser_controller = ChromiumBrowserController()
+        session_id = self.blaulichtsms_controller.get_session()
+        self.browser_controller = ChromiumBrowserController(session_id)
         self.browser_controller.start()
 
     def _run_helper(self):
@@ -28,7 +29,8 @@ class AlarmMonitorTest:
         if not self.browser_controller.is_alive():
             self.logger.warning(
                 "Browser is no longer running - restarting it")
-            self.browser_controller = ChromiumBrowserController()
+            session_id = self.blaulichtsms_controller.get_session()
+            self.browser_controller = ChromiumBrowserController(session_id)
             self.browser_controller.start()
         self.hdmi_cec_controller \
             .power_on(duration=self._hdmi_cec_device_on_time)
