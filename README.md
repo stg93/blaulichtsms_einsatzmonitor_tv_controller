@@ -22,10 +22,18 @@ Folgende Bibliotheken werden benötigt:
 	* cec
 
 Zum Installieren der Äbhängigkeiten folgenden Befehle ausführen:
+
 ```bash
 sudo apt install cec-utils libcec4-dev
-pip3 install pyyaml cec && sudo pip3 install pyyaml cec
+pip3 install --system pyyaml cec
 ```
+
+Um Python Packete systemweit mit `pip3 install --system` installieren zu können muss der User der die Installation ausführt in der Gruppe *staff* sein. Ein User kann zu dieser Gruppe mit:
+
+```bash
+sudo adduser <username> staff
+```
+hinzugefügt werden.
 
 ## Installation
 Zuerst muss via
@@ -48,7 +56,7 @@ Nachdem die Konfiguration abgeschlossen ist können im File `config.ini` fortges
 Anschließend erfolgt die Installation via
 
 ```bash
-./INSTALL
+sudo ./INSTALL
 ```
 
 Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet. Es ist daher sinnvoll den Code in sein finales Verzeichnis zu verschieben bevor die Installation erfolgt.
@@ -56,7 +64,7 @@ Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet. Es
 ## Deinstalltion
 Die Deinstallation erfolgt mit
 ```bash
-./UNINSTALL
+sudo ./UNINSTALL
 ```
 Danach kann das Verzeichnis mit der Applikation gelöscht werden.
 
@@ -102,6 +110,8 @@ führt einen Test mit folgenden Verhalten durch:
 Während das HDMI Gerät eingeschaltet ist sollte das blaulichtSMS Einsatzmonitor Dashboard darauf sichtbar sein. Das Laden des Dashboards dauert am Anfang etwas.
 
 Am Ende wird eine Zusammenfassung des Tests angezeigt.
+
+Der Test kann auch ohne *sudo* ausgeführt werden, da aber Systemd die Applikation auch mit root-Rechten ausführt bildet ein Test mit *sudo* näher die tatsächliche Ausführung ab.
 
 ## Lizenz
 Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICENSE))
