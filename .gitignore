@@ -1,5 +1,12 @@
 config.ini
 log/
+.remote-sync.json
+
+
+# pipenv
+
+Pipfile
+Pipfile.lock
 
 
 # Created by https://www.gitignore.io/api/python

@@ -14,8 +14,10 @@ class BlaulichtSmsSessionInitException(BlaulichtSmsException):
 
 
 class BlaulichtSmsAlarmRequestException(BlaulichtSmsException):
+    EXCEPTION_MSG = "Request for blaulichtSMS alarms failed"
+
     def __init__(self):
-        self.message = "Request for blaulichtSMS alarms failed"
+        self.message = self.EXCEPTION_MSG
 
 
 class BlaulichtSmsController:

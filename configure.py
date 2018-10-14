@@ -22,10 +22,13 @@ class AlarmmonitorConfigurator:
         self.hdmi_cec_device_on_time = "0"
         self.run_user = ""
 
-        self.send_log = False
         self.gmail_username = ""
         self.gmail_password = ""
         self.recipients = []
+        self.send_connection_errors = False
+        self.send_errors = False
+        self.send_starts = False
+        self.send_log = False
 
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = "465"
@@ -53,6 +56,14 @@ class AlarmmonitorConfigurator:
             else:
                 print("")
                 self._print_warning("The entered passwords did not match.")
+
+    def _is_yes_input(self, prompt):
+        user_input = self._get_input_with_validation(
+            prompt + "[yes|no]",
+            "Please answer with either 'yes' or 'no'",
+            self._is_yes_no
+        )
+        return user_input == "yes" or user_input == "y"
 
     def _configure_blaulichtsms_account(self):
         while True:
@@ -120,8 +131,9 @@ class AlarmmonitorConfigurator:
                     "Please enter a valid username for the system.")
 
     def _configure_gmail(self):
-        self._configure_send_log()
-        if self.send_log:
+        email_notifications = \
+            self._is_yes_input("Do you want to send email notifications?")
+        if email_notifications:
             while True:
                 print("")
                 self._configure_gmail_username()
@@ -135,14 +147,18 @@ class AlarmmonitorConfigurator:
                         "Unable to connect to Gmail with this credentials.")
             print("")
             self._configure_recipients()
-
-    def _configure_send_log(self):
-        user_input = self._get_input_with_validation(
-            "Do you want to send the log of the day via email?[yes|no]",
-            "Please answer with either 'yes' or 'no'",
-            self._is_yes_no
-        )
-        self.send_log = user_input == "yes" or user_input == "y"
+            print("")
+            self.send_connection_errors = self._is_yes_input(
+                "Do you want to send emails about internet connection errors?")
+            print("")
+            self.send_errors = \
+                self._is_yes_input("Do you want to send emails about errors?")
+            print("")
+            self.send_starts = self._is_yes_input(
+                "Do you want to send emails about application starts?")
+            print("")
+            self.send_log = self._is_yes_input(
+                "Do you want to send the log of the day via email?")
 
     def _configure_gmail_username(self):
         print("A Gmail account is required to send the log.")
@@ -267,6 +283,10 @@ class AlarmmonitorConfigurator:
             self.hdmi_cec_device_on_time
         config["Alarmmonitor"]["polling_interval"] = self.polling_interval
         config["Alarmmonitor"]["run_user"] = self.run_user
+        config["Alarmmonitor"]["send_connection_errors"] = \
+            str(self.send_connection_errors)
+        config["Alarmmonitor"]["send_errors"] = str(self.send_errors)
+        config["Alarmmonitor"]["send_starts"] = str(self.send_starts)
 
     def _write_email_section(self, config):
         config["Email"]["username"] = self.gmail_username
