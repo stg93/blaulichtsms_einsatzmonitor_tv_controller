@@ -159,7 +159,7 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 * Raspberry Pi Zero W
-* Raspbian Stretch
+* [Raspbian Stretch Desktop](https://downloads.raspberrypi.org/raspbian_latest)
 * Samsung TV LE40B530P7W
 
 ## Fragen und Probleme
