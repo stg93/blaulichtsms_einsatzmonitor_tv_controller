@@ -159,8 +159,8 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 * Raspberry Pi Zero W
-* https://downloads.raspberrypi.org/raspbian_latest - Raspbian Stretch Desktop
+* [Raspbian Stretch Desktop](https://downloads.raspberrypi.org/raspbian_latest)
 * Samsung TV LE40B530P7W
-[GitHub](http://github.com)
+
 ## Fragen und Probleme
 Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new).
