@@ -10,7 +10,7 @@ Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https:
 
 Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die [Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
 
-Die Applikation ist entwickelt für Raspberry Pi in Kombination mit Raspbian Stretch. Für andere Systeme muss der Source Code angepasst werden.
+Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspbian Stretch Desktop](https://www.raspberrypi.org/downloads/raspbian/). Für andere Systeme muss der Source Code angepasst werden.
 
 ## Abhängigkeiten
 Folgende Bibliotheken werden benötigt:
@@ -159,7 +159,7 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 * Raspberry Pi Zero W
-* [Raspbian Stretch Desktop](https://downloads.raspberrypi.org/raspbian_latest)
+* Raspbian Stretch Desktop [Download](https://downloads.raspberrypi.org/raspbian_latest)
 * Samsung TV LE40B530P7W
 
 ## Fragen und Probleme
