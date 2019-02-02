@@ -10,7 +10,7 @@ Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https:
 
 Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die [Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
 
-Die Applikation ist entwickelt für Raspberry Pi in Kombination mit Raspbian Stretch. Für andere Systeme muss der Source Code angepasst werden.
+Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspbian Stretch Desktop](https://www.raspberrypi.org/downloads/raspbian/). Für andere Systeme muss der Source Code angepasst werden.
 
 ## Abhängigkeiten
 Folgende Bibliotheken werden benötigt:
@@ -145,7 +145,8 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   ```
 
   zum automatischen Installieren von Sicherheitsupdates.
-* Ändern des Standard-Benutzers und Abfrage des Passwortes für die Verwendung von `sudo` wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
+* Ändern des Standard-Benutzers und Abfrage des Passwortes für die Verwendung von `sudo` wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben. Achtung: Um auf Netzwerkgeräte zugreifen zu können muss ein User in der *netdev* Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe *video* sein.
+  
 * Da die Anwendung von Systemd als **root** User ausgeführt wird, sollte auch nur **root** schreibberechtigt sein. Sobald die Python Anwendung läuft lässt diese die root-Rechte fallen, da diese nicht erforderlich sind. Die Ausführung erfolgt stattdessen mit einem User, welcher bei der Konfiguration festgelegt wird. Dieser User sollte in einer Gruppe sein die lesesberechtigt ist.
 
   Folgendes Berechtigungsschema berücksichtigt diese Punkte:
@@ -159,7 +160,7 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 * Raspberry Pi Zero W
-* Raspbian Stretch
+* Raspbian Stretch Desktop [Download](https://downloads.raspberrypi.org/raspbian_latest)
 * Samsung TV LE40B530P7W
 
 ## Fragen und Probleme
