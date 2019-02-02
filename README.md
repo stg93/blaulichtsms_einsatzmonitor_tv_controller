@@ -145,7 +145,8 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   ```
 
   zum automatischen Installieren von Sicherheitsupdates.
-* Ändern des Standard-Benutzers und Abfrage des Passwortes für die Verwendung von `sudo` wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
+* Ändern des Standard-Benutzers und Abfrage des Passwortes für die Verwendung von `sudo` wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben. Achtung: Um auf Netzwerkgeräte zugreifen zu können muss ein User in der *netdev* Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe *video* sein.
+  
 * Da die Anwendung von Systemd als **root** User ausgeführt wird, sollte auch nur **root** schreibberechtigt sein. Sobald die Python Anwendung läuft lässt diese die root-Rechte fallen, da diese nicht erforderlich sind. Die Ausführung erfolgt stattdessen mit einem User, welcher bei der Konfiguration festgelegt wird. Dieser User sollte in einer Gruppe sein die lesesberechtigt ist.
 
   Folgendes Berechtigungsschema berücksichtigt diese Punkte:
