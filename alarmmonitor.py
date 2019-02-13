@@ -25,8 +25,7 @@ class AlarmMonitor:
         self.blaulichtsms_controller = BlaulichtSmsController(
             config["blaulichtSMS Einsatzmonitor"]["customer_id"],
             config["blaulichtSMS Einsatzmonitor"]["username"],
-            config["blaulichtSMS Einsatzmonitor"]["password"]
-        )
+            config["blaulichtSMS Einsatzmonitor"]["password"])
         self.hdmi_cec_controller = HdmiCecController()
         session_id = self.blaulichtsms_controller.get_session()
         self.browser_controller = ChromiumBrowserController(session_id)
@@ -44,9 +43,12 @@ class AlarmMonitor:
         try:
             self._check_browser_status()
             self.hdmi_cec_controller.check_hdmi_cec_device_connection()
-            if self.blaulichtsms_controller.is_alarm():
+            if self.blaulichtsms_controller.is_alarm(self._hdmi_cec_device_on_time):
                 self.hdmi_cec_controller \
-                    .power_on(duration=self._hdmi_cec_device_on_time)
+                    .power_on()
+            else:
+                if self.hdmi_cec_controller.is_on():
+                    self.hdmi_cec_controller.standby()
         except KeyboardInterrupt as e:
             raise e
         except Exception:
@@ -59,8 +61,7 @@ class AlarmMonitor:
         If the process is no longer running, it starts a new one.
         """
         if not self.browser_controller.is_alive():
-            self.logger.warning(
-                "Browser is no longer running - restarting it")
+            self.logger.warning("Browser is no longer running - restarting it")
             session_id = self.blaulichtsms_controller.get_session()
             self.browser_controller = ChromiumBrowserController(session_id)
             self.browser_controller.start()

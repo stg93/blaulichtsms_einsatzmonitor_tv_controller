@@ -1,29 +1,29 @@
 import logging
+from datetime import datetime
 from time import sleep
-import cec
+
+import cec_helper
 
 
 class HdmiCecController:
     """Handles the communication with a HDMI device over CEC."""
 
-    def __init__(self):
+    def __init__(self, mode=cec_helper.CEC_LIB, monitor_check_interval=120):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialising HDMI CEC connection...")
-        cec.init()
-        self.hdmi_cec_device = cec.Device(cec.CECDEVICE_TV)
-        try:
-            if self.hdmi_cec_device.is_on():
-                self.logger.debug("Device is on -> standby device")
-                self.hdmi_cec_device.standby()
-        except OSError:
-            self.logger.error("Cannot connect to HDMI CEC device")
+        self.cec = cec_helper.CecLib() if mode == cec_helper.CEC_LIB else cec_helper.CecUtils()
         self.logger.info("Initialized HDMI CEC connection")
+
+        self.monitor_is_on = False
+        self.last_monitor_check = datetime(2000, 1, 1)
+        self.monitor_check_interval = monitor_check_interval
 
     def power_on(self, duration=None):
         self.logger.info("Power on HDMI CEC device")
-        self.check_hdmi_cec_device_connection()
-        self.hdmi_cec_device.power_on()
+        self.cec.power_on()
+        self.cec.activate_source()
         if duration:
+            self.logger.warn("deprecated: duration")
             sleep(duration)
             self.standby()
 
@@ -36,7 +36,7 @@ class HdmiCecController:
         self.is_on()
 
     def is_on(self):
-        try:
-            return self.hdmi_cec_device.is_on()
-        except OSError:
-            self.logger.error("Cannot connect to HDMI CEC device")
+        if (datetime.utcnow() - self.last_monitor_check).second > self.monitor_check_interval:
+            self.monitor_is_on = self.cec.is_on()
+            self.last_monitor_check = datetime.utcnow()
+        return self.monitor_is_on

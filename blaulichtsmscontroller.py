@@ -9,11 +9,13 @@ class BlaulichtSmsException(Exception):
 
 
 class BlaulichtSmsSessionInitException(BlaulichtSmsException):
+
     def __init__(self):
         self.message = "Unable to initialize session"
 
 
 class BlaulichtSmsAlarmRequestException(BlaulichtSmsException):
+
     def __init__(self):
         self.message = "Request for blaulichtSMS alarms failed"
 
@@ -67,26 +69,16 @@ class BlaulichtSmsController:
             self.logger.error(request_exception.message)
             raise request_exception
 
-    def is_alarm(self):
+    def is_alarm(self, time_interval):
         self.logger.info("Checking for new alarms...")
-        self.logger.debug(
-                "Last time checked for new alarms: "
-                + str(self.last_alarm_check)
-        )
+        self.logger.debug("Last time checked for new alarms: " + str(self.last_alarm_check))
         alarms = self._get_alarms()
         for alarm in alarms:
-            alarm_datetime = datetime.strptime(
-                alarm["alarmDate"],
-                '%Y-%m-%dT%H:%M:%S.%fZ'
-            )
-            self.logger.debug(
-                "Alarm " + str(alarm["alarmId"])
-                + " on " + str(alarm_datetime)
-            )
-            if self.last_alarm_check < alarm_datetime:
-                self.logger.debug(
-                    "Alarm " + str(alarm["alarmId"]) + " is new")
-                self.logger.info("There is a new alarm")
+            alarm_datetime = datetime.strptime(alarm["alarmDate"], '%Y-%m-%dT%H:%M:%S.%fZ')
+            self.logger.debug("Alarm " + str(alarm["alarmId"]) + " on " + str(alarm_datetime))
+            if abs((datetime.utcnow() - alarm_datetime).second) <= time_interval:
+                self.logger.debug("Alarm " + str(alarm["alarmId"]) + " is active")
+                self.logger.info("There is an active alarm")
                 self.last_alarm_check = datetime.now()
                 return True
         self.logger.info("No new alarm found")
