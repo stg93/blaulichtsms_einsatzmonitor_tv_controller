@@ -39,10 +39,10 @@ class AlarmMonitor:
         blaulichtSMS Einsatzmonitor dashboard is running.
         Checks if communication with an HDMI device via CEC is possible.
         """
+        self.logger.debug("running helper")
         self.scheduler.enter(self._polling_interval, 1, self._run_helper)
         try:
             self._check_browser_status()
-            self.hdmi_cec_controller.check_hdmi_cec_device_connection()
             if self.blaulichtsms_controller.is_alarm(self._hdmi_cec_device_on_time):
                 self.hdmi_cec_controller \
                     .power_on()
@@ -53,6 +53,7 @@ class AlarmMonitor:
             raise e
         except Exception:
             pass
+            self.logger.exception("helper failed")
 
     def _check_browser_status(self):
         """Checks if the browser process which is displaying the blaulichtSMS

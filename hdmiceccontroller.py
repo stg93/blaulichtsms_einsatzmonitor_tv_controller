@@ -28,15 +28,12 @@ class HdmiCecController:
             self.standby()
 
     def standby(self):
-        if self.hdmi_cec_device.is_on():
+        if self.cec.is_on():
             self.logger.info("Standby HDMI CEC device")
-            self.hdmi_cec_device.standby()
-
-    def check_hdmi_cec_device_connection(self):
-        self.is_on()
+            self.cec.standby()
 
     def is_on(self):
-        if (datetime.utcnow() - self.last_monitor_check).second > self.monitor_check_interval:
+        if abs(datetime.utcnow() - self.last_monitor_check).total_seconds() > self.monitor_check_interval:
             self.monitor_is_on = self.cec.is_on()
             self.last_monitor_check = datetime.utcnow()
         return self.monitor_is_on

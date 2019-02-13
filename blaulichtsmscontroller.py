@@ -63,7 +63,8 @@ class BlaulichtSmsController:
             response = requests.get(self._BASE_URL + self.session)
             self.logger.info("Request succesful")
             self.logger.debug("Response body: \n" + pformat(response.json()))
-            return response.json()["alarms"]
+            response_json = response.json()
+            return response_json.get("alarms", []) + response_json.get("infos", [])
         except requests.exceptions.ConnectionError:
             request_exception = BlaulichtSmsAlarmRequestException()
             self.logger.error(request_exception.message)
@@ -73,10 +74,12 @@ class BlaulichtSmsController:
         self.logger.info("Checking for new alarms...")
         self.logger.debug("Last time checked for new alarms: " + str(self.last_alarm_check))
         alarms = self._get_alarms()
+        self.logger.info("Alarms: %s", len(alarms))
         for alarm in alarms:
             alarm_datetime = datetime.strptime(alarm["alarmDate"], '%Y-%m-%dT%H:%M:%S.%fZ')
-            self.logger.debug("Alarm " + str(alarm["alarmId"]) + " on " + str(alarm_datetime))
-            if abs((datetime.utcnow() - alarm_datetime).second) <= time_interval:
+            time_diff = abs((datetime.utcnow() - alarm_datetime).total_seconds())
+            self.logger.debug("Alarm %s on %s %s, diff: %s", alarm["alarmId"], alarm_datetime, alarm["alarmText"], time_diff)
+            if time_diff <= time_interval:
                 self.logger.debug("Alarm " + str(alarm["alarmId"]) + " is active")
                 self.logger.info("There is an active alarm")
                 self.last_alarm_check = datetime.now()
