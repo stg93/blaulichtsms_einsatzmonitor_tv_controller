@@ -11,7 +11,7 @@ class HdmiCecController:
     def __init__(self, mode=cec_helper.CEC_LIB, monitor_check_interval=120):
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialising HDMI CEC connection...")
-        self.cec = cec_helper.CecLib() if mode == cec_helper.CEC_LIB else cec_helper.CecUtils()
+        self.cec = cec_helper.CecUtils() if mode == cec_helper.CEC_UTILS else cec_helper.CecLib()
         self.logger.info("Initialized HDMI CEC connection")
 
         self.monitor_is_on = False
@@ -33,7 +33,8 @@ class HdmiCecController:
             self.cec.standby()
 
     def is_on(self):
-        if abs(datetime.utcnow() - self.last_monitor_check).total_seconds() > self.monitor_check_interval:
+        if abs(datetime.utcnow() - self.last_monitor_check).total_seconds(
+        ) > self.monitor_check_interval:
             self.monitor_is_on = self.cec.is_on()
             self.last_monitor_check = datetime.utcnow()
         return self.monitor_is_on

@@ -87,7 +87,7 @@ class CecUtils(CecHelper):
     """ CEC Helper """
 
     def __init__(self, *args, **kwargs):
-        self.log = self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
         self.monitor_status = STATUS_UNKNOWN
 
     def power_on(self):
@@ -113,29 +113,29 @@ class CecUtils(CecHelper):
             cec_args.append(str(debug))
         cec_args += args
         pipe_read, pipe_write = os.pipe()
-        os.write(pipe_write, command)
+        os.write(pipe_write, command.encode() if isinstance(command, str) else command)
         os.close(pipe_write)
         output = subprocess.check_output(cec_args, stdin=pipe_read, close_fds=True)
         os.close(pipe_read)
-        return output
+        return output.decode()
 
     def get_status(self):
         """ get the current status of the monitor """
         try:
-            self.log.info("fetching monitor status")
+            self.logger.info("fetching monitor status")
             cec_scan = self.cec("scan", debug="1")
             match = re.search(r"power status: *(.+)$", cec_scan, re.MULTILINE)
             self.monitor_status = STATUS_UNKNOWN
             if match is not None:
                 status = match.group(1)
-                self.log.info("Monitor is set to %s", status)
+                self.logger.info("Monitor is set to %s", status)
                 if status == "standby":
                     self.monitor_status = STATUS_STANDBY
-                elif status == "on":
+                elif status == "on" or status == "in transition from standby to on":
                     self.monitor_status = STATUS_ON
             return self.monitor_status
         except subprocess.CalledProcessError as err:
-            self.log.warn("failed to get monitor status %s %s", err.returncode, err.output)
+            self.logger.warn("failed to get monitor status %s %s", err.returncode, err.output)
 
     def change_status(self, desired_state=STATUS_ON, device_id=0):
         """
@@ -144,11 +144,13 @@ class CecUtils(CecHelper):
         to turn the display on and activate itself
         """
         state_name = "on" if desired_state == STATUS_ON else "standby"
-        self.log.info("changing monitor to %s", state_name)
+        self.logger.info("changing monitor to %s", state_name)
         try:
             cec_cmd = "{} {}".format(state_name, device_id)
             output = self.cec(cec_cmd)
-            self.monitor_status = desired_state
-            self.log.info("monitor status changed: \n%s", output)
+            # self.monitor_status = desired_state
+            self.logger.debug("monitor status change: \n%s", output)
+            self.logger.info("monitor status is now %s", "ON"
+                             if self.monitor_status == STATUS_ON else "STANDBY")
         except subprocess.CalledProcessError as err:
-            self.log.warn("failed to set monitor status %s %s", err.returncode, err.output)
+            self.logger.warn("failed to set monitor status %s %s", err.returncode, err.output)

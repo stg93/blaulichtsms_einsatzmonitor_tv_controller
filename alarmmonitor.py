@@ -26,7 +26,8 @@ class AlarmMonitor:
             config["blaulichtSMS Einsatzmonitor"]["customer_id"],
             config["blaulichtSMS Einsatzmonitor"]["username"],
             config["blaulichtSMS Einsatzmonitor"]["password"])
-        self.hdmi_cec_controller = HdmiCecController()
+        self.hdmi_cec_controller = HdmiCecController(
+            int(config["Alarmmonitor"].get("cec_mode", 1)))
         session_id = self.blaulichtsms_controller.get_session()
         self.browser_controller = ChromiumBrowserController(session_id)
         self.browser_controller.start()
@@ -44,8 +45,9 @@ class AlarmMonitor:
         try:
             self._check_browser_status()
             if self.blaulichtsms_controller.is_alarm(self._hdmi_cec_device_on_time):
-                self.hdmi_cec_controller \
-                    .power_on()
+                if not self.hdmi_cec_controller.is_on():
+                    self.hdmi_cec_controller \
+                        .power_on()
             else:
                 if self.hdmi_cec_controller.is_on():
                     self.hdmi_cec_controller.standby()
