@@ -1,6 +1,8 @@
 # cec_helper.py
-# This tool helps to use either libcec or cec-utils to send commands to HDMI CEC
-# both should be installed on the system
+"""
+This tool helps to use either libcec or cec-utils to send commands to HDMI CEC
+both should be installed on the system
+"""
 import logging
 import cec
 import re
@@ -20,7 +22,8 @@ class CecFactory(object):
 
     @staticmethod
     def create(cls, mode=CEC_LIB):
-        """ create a new CecHelper instance
+        """
+        create a new CecHelper instance
         either CecLib or CecUtils
         """
         if mode == CEC_LIB:
@@ -33,21 +36,27 @@ class CecHelper(object):
     """ CEC Helper """
 
     def __init__(self, *args, **kwargs):
+        """ default constructor """
         pass
 
     def power_on(self):
+        """ turn the TV on """
         pass
 
     def standby(self):
+        """ put the TV to standby """
         pass
 
     def activate_source(self):
+        """ activate raspberry pi as source """
         pass
 
     def is_on(self):
+        """ check if the monitor is on """
         pass
 
     def is_standby(self):
+        """ check if the monitor is standby """
         return not self.is_on()
 
 
@@ -55,24 +64,29 @@ class CecLib(CecHelper):
     """ Implement CEC Lib """
 
     def __init__(self, *args, **kwargs):
+        """ create a HDMI CEC connection """
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initialising HDMI CEC connection...")
         cec.init()
         self.hdmi_cec_device = cec.Device(cec.CECDEVICE_TV)
 
     def power_on(self):
+        """ turn the TV on """
         self.logger.info("Power on HDMI CEC device")
         self.check_hdmi_cec_device_connection()
         self.hdmi_cec_device.power_on()
 
     def standby(self):
+        """ put the TV to standby """
         self.logger.info("Standby HDMI CEC device")
         self.hdmi_cec_device.standby()
 
     def activate_source(self):
+        """ activate raspberry pi as source """
         cec.set_active_source()
 
     def is_on(self):
+        """ check if the monitor is on """
         try:
             return self.hdmi_cec_device.is_on()
         except OSError:
@@ -80,6 +94,7 @@ class CecLib(CecHelper):
         return False
 
     def check_hdmi_cec_device_connection(self):
+        """ try to get the monitor status, same as is_on """
         return self.is_on()
 
 
@@ -87,14 +102,17 @@ class CecUtils(CecHelper):
     """ CEC Helper """
 
     def __init__(self, *args, **kwargs):
+        """ setup status for cec utils """
         self.logger = logging.getLogger(__name__)
         self.monitor_status = STATUS_UNKNOWN
 
     def power_on(self):
+        """ turn the TV on """
         self.change_status(STATUS_ON)
         return self.monitor_status == STATUS_ON
 
     def standby(self):
+        """ put the TV to standby """
         self.change_status(STATUS_STANDBY)
         return self.monitor_status == STATUS_STANDBY
 
@@ -103,6 +121,7 @@ class CecUtils(CecHelper):
         self.cec("as")
 
     def is_on(self):
+        """ check if the monitor is on """
         return self.get_status() == STATUS_ON
 
     def cec(self, command, debug=None, *args):
