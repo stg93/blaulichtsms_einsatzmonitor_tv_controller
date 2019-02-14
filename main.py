@@ -56,8 +56,7 @@ def drop_privileges(username, logging_file):
 
         logger.debug("Changed uid from {} to {}".format(old_uid, new_uid))
         logger.debug("Changed gid from {} to {}".format(old_gid, new_gid))
-        logger.debug("Changed groups from {} to {}".format(
-            old_groups, new_groups))
+        logger.debug("Changed groups from {} to {}".format(old_groups, new_groups))
 
         logger.info("Dropped privileges. No longer running as root.")
 
@@ -72,9 +71,7 @@ def _get_run_user():
 def main():
     logging_config = get_logging_config("logging_config.yaml")
     set_up_logging(logging_config)
-    drop_privileges(
-        _get_run_user(),
-        logging_config["handlers"]["file"]["filename"])
+    drop_privileges(_get_run_user(), logging_config["handlers"]["file"]["filename"])
 
     # importing after drop_privileges to prevent Python from importing
     # the root cec module in hdmiceccontroller and causing problems
@@ -86,4 +83,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        raise e
+    except:  # noqa E722
+        logging.exception("failed to run main program")

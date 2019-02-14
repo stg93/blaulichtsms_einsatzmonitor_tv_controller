@@ -78,7 +78,8 @@ class BlaulichtSmsController:
         for alarm in alarms:
             alarm_datetime = datetime.strptime(alarm["alarmDate"], '%Y-%m-%dT%H:%M:%S.%fZ')
             time_diff = abs((datetime.utcnow() - alarm_datetime).total_seconds())
-            self.logger.debug("Alarm %s on %s %s, diff: %s", alarm["alarmId"], alarm_datetime, alarm["alarmText"], time_diff)
+            self.logger.debug("Alarm %s on %s %s, diff: %s", alarm["alarmId"], alarm_datetime,
+                              alarm["alarmText"], time_diff)
             if time_diff <= time_interval:
                 self.logger.debug("Alarm " + str(alarm["alarmId"]) + " is active")
                 self.logger.info("There is an active alarm")
