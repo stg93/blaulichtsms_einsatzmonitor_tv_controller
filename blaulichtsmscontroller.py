@@ -14,13 +14,6 @@ class BlaulichtSmsSessionInitException(BlaulichtSmsException):
         self.message = "Unable to initialize session"
 
 
-class BlaulichtSmsAlarmRequestException(BlaulichtSmsException):
-    EXCEPTION_MSG = "Request for blaulichtSMS alarms failed"
-
-    def __init__(self):
-        self.message = self.EXCEPTION_MSG
-
-
 class BlaulichtSmsController:
     """Handles the communication with the
     `blaulichtSMS Dashboard API
@@ -72,8 +65,8 @@ class BlaulichtSmsController:
             self.logger.debug("Response body: \n" + pformat(response.json()))
             return response.json()["alarms"]
         except requests.exceptions.ConnectionError:
-            request_exception = BlaulichtSmsAlarmRequestException()
-            raise request_exception
+            self.logger.error("Failed to request blaulichtSMS alarms. Maybe there is no internet connection.")
+            return None
 
     def is_alarm(self):
         """Checks if there is any active alarm.
@@ -85,6 +78,8 @@ class BlaulichtSmsController:
         """
         self.logger.info("Checking for new alarms...")
         alarms = self._get_alarms()
+        if not alarms:
+            return False
         for alarm in alarms:
             alarm_datetime = datetime.strptime(alarm["alarmDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
             self.logger.debug("Alarm " + str(alarm["alarmId"]) + " on " + str(alarm_datetime))

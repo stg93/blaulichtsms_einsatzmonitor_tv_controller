@@ -3,7 +3,6 @@ import json
 import logging
 from email.mime.text import MIMEText
 
-from blaulichtsmscontroller import BlaulichtSmsAlarmRequestException
 from sendmail import MailSender
 
 
@@ -29,10 +28,7 @@ class SMTPErrorHandler(logging.Handler):
 
     def emit(self, record):
         if record.levelno == logging.ERROR:
-            if record.msg == BlaulichtSmsAlarmRequestException.EXCEPTION_MSG:
-                if self.send_connection_errors:
-                    self._send_mail(record.msg)
-            elif self.send_errors:
+            if self.send_errors:
                 self._send_mail(record.msg)
         elif record.msg.startswith("START") and self.send_starts:
             self._send_mail(record.msg)
