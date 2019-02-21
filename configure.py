@@ -1,19 +1,21 @@
-import sys
-import re
-import yaml
 import configparser
 import json
+import re
 import stat
-from os.path import isfile
-from os import getuid, chown, chmod
-from pwd import getpwuid, getpwnam
+import sys
 from getpass import getpass
+from os import getuid, chown, chmod
+from os.path import isfile
+from pwd import getpwuid, getpwnam
+
+import yaml
+
 from blaulichtsmscontroller import BlaulichtSmsController
 from blaulichtsmscontroller import BlaulichtSmsSessionInitException
 from sendmail import MailSender
 
 
-class AlarmmonitorConfigurator:
+class AlarmMonitorConfigurator:
     def __init__(self):
         self.blaulichtsms_customer_id = ""
         self.blaulichtsms_username = ""
@@ -175,6 +177,7 @@ class AlarmmonitorConfigurator:
 
     def _configure_recipients(self):
         finished = False
+        recipients = None
         while not finished:
             print(
                 "Please enter a comma separated list"
@@ -191,7 +194,8 @@ class AlarmmonitorConfigurator:
                     finished = False
         self.recipients = recipients
 
-    def _is_valid_blaulichtsms_customer_id(self, customer_id):
+    @staticmethod
+    def _is_valid_blaulichtsms_customer_id(customer_id):
         return re.match("^[0-9]{6}$", customer_id)
 
     def _are_valid_blaulichtsms_credentials(self):
@@ -204,25 +208,29 @@ class AlarmmonitorConfigurator:
         except BlaulichtSmsSessionInitException:
             return False
 
-    def _is_positive_int(self, integer_string):
+    @staticmethod
+    def _is_positive_int(integer_string):
         try:
             integer = int(integer_string)
             return integer > 0
         except ValueError:
             return False
 
-    def _is_valid_system_user(self, username):
+    @staticmethod
+    def _is_valid_system_user(username):
         try:
             getpwnam(username)
             return True
         except KeyError:
             return False
 
-    def _is_yes_no(self, input):
-        return input == "yes" or input == "y" \
-            or input == "no" or input == "n"
+    @staticmethod
+    def _is_yes_no(user_input):
+        return user_input == "yes" or user_input == "y" \
+               or user_input == "no" or user_input == "n"
 
-    def _is_valid_gmail(self, email):
+    @staticmethod
+    def _is_valid_gmail(email):
         return re.match("^.+@gmail\\.com$", email)
 
     def _are_valid_gmail_credentials(self):
@@ -236,12 +244,14 @@ class AlarmmonitorConfigurator:
         )
         return mail_sender.get_connection() is not None
 
-    def _is_valid_email(self, email):
+    @staticmethod
+    def _is_valid_email(email):
         return re.match("^.+@.+\\.[a-z]+$", email)
 
     def _write(self):
         self._write_config_ini()
         self._write_send_log()
+        self._write_systemd_service()
 
     def _write_config_ini(self):
         if isfile("config.ini"):
@@ -263,7 +273,8 @@ class AlarmmonitorConfigurator:
         chown(config_file_name, getuid(), gid)
         chmod(config_file_name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP)
 
-    def _get_config_scaffold(self):
+    @staticmethod
+    def _get_config_scaffold():
         config = configparser.ConfigParser()
         config["Email"] = {}
         config["blaulichtSMS Einsatzmonitor"] = {}
@@ -304,17 +315,27 @@ class AlarmmonitorConfigurator:
         with open("logging_config.yaml", "w") as file:
             yaml.dump(config, file, default_flow_style=False)
 
-    def _print_warning(self, msg):
+    def _write_systemd_service(self):
+        with open("alarmmonitor.service") as service_file:
+            service_file_content = service_file.read()
+            service_file_content = re.sub("User=.*", "User=" + self.run_user, service_file_content)
+        with open("alarmmonitor.service", "w") as service_file:
+            service_file.write(service_file_content)
+
+    @staticmethod
+    def _print_warning(msg):
         ansi_warn = "\033[93m"
         ansi_end = "\033[0m"
         print(ansi_warn + msg + ansi_end)
 
-    def _print_error(self, msg):
+    @staticmethod
+    def _print_error(msg):
         ansi_error = "\033[91m"
         ansi_end = "\033[0m"
         print(ansi_error + msg + ansi_end, file=sys.stderr)
 
-    def _print_success(self, msg):
+    @staticmethod
+    def _print_success(msg):
         ansi_success = "\033[92m"
         ansi_end = "\033[0m"
         print(ansi_success + msg + ansi_end)
@@ -337,5 +358,5 @@ class AlarmmonitorConfigurator:
 
 
 if __name__ == "__main__":
-    configurator = AlarmmonitorConfigurator()
+    configurator = AlarmMonitorConfigurator()
     configurator.configure()
