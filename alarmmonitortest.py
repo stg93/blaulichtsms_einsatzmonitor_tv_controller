@@ -6,6 +6,7 @@ from chromiumbrowsercontroller import ChromiumBrowserController
 
 
 class AlarmMonitorTest:
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -19,16 +20,16 @@ class AlarmMonitorTest:
             config["blaulichtSMS Einsatzmonitor"]["username"],
             config["blaulichtSMS Einsatzmonitor"]["password"],
             config["blaulichtSMS Einsatzmonitor"].get("show_infos", False))
-        self.hdmi_cec_controller = HdmiCecController()
+        self.hdmi_cec_controller = HdmiCecController(
+            int(config["Alarmmonitor"].get("cec_mode", 1)))
         session_id = self.blaulichtsms_controller.get_session()
         self.browser_controller = ChromiumBrowserController(session_id)
         self.browser_controller.start()
 
     def _run_helper(self):
-        self.blaulichtsms_controller.is_alarm()
+        self.blaulichtsms_controller.is_alarm(self._hdmi_cec_device_on_time)
         if not self.browser_controller.is_alive():
-            self.logger.warning(
-                "Browser is no longer running - restarting it")
+            self.logger.warning("Browser is no longer running - restarting it")
             session_id = self.blaulichtsms_controller.get_session()
             self.browser_controller = ChromiumBrowserController(session_id)
             self.browser_controller.start()
