@@ -23,7 +23,7 @@ class HdmiCecController:
         self.cec.power_on()
         self.cec.activate_source()
         if duration:
-            self.logger.warn("deprecated: duration")
+            self.logger.warning("deprecated: duration")
             sleep(duration)
             self.standby()
 

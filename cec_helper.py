@@ -154,7 +154,7 @@ class CecUtils(CecHelper):
                     self.monitor_status = STATUS_ON
             return self.monitor_status
         except subprocess.CalledProcessError as err:
-            self.logger.warn("failed to get monitor status %s %s", err.returncode, err.output)
+            self.logger.warning("failed to get monitor status %s %s", err.returncode, err.output)
 
     def change_status(self, desired_state=STATUS_ON, device_id=0):
         """
@@ -172,4 +172,4 @@ class CecUtils(CecHelper):
             self.logger.info("monitor status is now %s", "ON"
                              if self.monitor_status == STATUS_ON else "STANDBY")
         except subprocess.CalledProcessError as err:
-            self.logger.warn("failed to set monitor status %s %s", err.returncode, err.output)
+            self.logger.warning("failed to set monitor status %s %s", err.returncode, err.output)
