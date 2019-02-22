@@ -8,6 +8,7 @@ import cec
 import re
 import os
 import subprocess
+from abc import ABC, abstractmethod
 
 CEC_LIB = 1
 CEC_UTILS = 2
@@ -17,40 +18,29 @@ STATUS_ON = 1
 STATUS_UNKNOWN = -1
 
 
-class CecFactory(object):
-    """ Factory for CEC Helper objects """
-
-    @staticmethod
-    def create(cls, mode=CEC_LIB):
-        """
-        create a new CecHelper instance
-        either CecLib or CecUtils
-        """
-        if mode == CEC_LIB:
-            return CecLib()
-        else:
-            return CecUtils()
-
-
-class CecHelper(object):
+class CecHelper(ABC):
     """ CEC Helper """
 
     def __init__(self, *args, **kwargs):
         """ default constructor """
         pass
 
+    @abstractmethod
     def power_on(self):
         """ turn the TV on """
         pass
 
+    @abstractmethod
     def standby(self):
         """ put the TV to standby """
         pass
 
+    @abstractmethod
     def activate_source(self):
         """ activate raspberry pi as source """
         pass
 
+    @abstractmethod
     def is_on(self):
         """ check if the monitor is on """
         pass
