@@ -18,7 +18,7 @@ Folgende Bibliotheken werden benötigt:
 	* cec-utils
 	* libcec4-dev
 * Pip Packete:
-	* yaml
+	* pyyaml
 	* cec
 
 Zum Installieren der Äbhängigkeiten folgenden Befehle ausführen:
@@ -156,6 +156,27 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   sudo chmod 740 INSTALL UNINSTALL
   sudo chmod 644 LICENSE README.md
   ```
+
+### HDMI CEC Kommandos
+
+Mit folgenden Befehlen kann ein Montior gesteuert werden:
+
+```bash
+# list known devices
+cec-client -l
+
+# scan for devices
+echo scan | cec-client -s -d 1
+
+# put device 0 to on
+echo "on 0" | cec-client -d 1 -s
+
+# put device 0 to standby
+echo 'standby 0' | cec-client -s -d 1
+
+# change source to current
+echo "as" | cec-client -s
+```
 
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
