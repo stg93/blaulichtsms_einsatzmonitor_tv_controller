@@ -29,13 +29,14 @@ class BlaulichtSmsController:
     _BASE_URL = \
         "https://api.blaulichtsms.net/blaulicht/api/alarm/v1/dashboard/"
 
-    def __init__(self, customer_id, username, password):
+    def __init__(self, customer_id, username, password, show_info=False):
         self.logger = logging.getLogger(__name__)
         self.customer_id = customer_id
         self.username = username
         self.password = password
         self.last_alarm_check = datetime.now()
         self.session = self.get_session()
+        self.show_infos = True if show_info else False
 
     def get_session(self):
         try:
@@ -64,7 +65,10 @@ class BlaulichtSmsController:
             self.logger.info("Request succesful")
             self.logger.debug("Response body: \n" + pformat(response.json()))
             response_json = response.json()
-            return response_json.get("alarms", []) + response_json.get("infos", [])
+            alarms = response_json.get("alarms", [])
+            if self.show_infos:
+                alarms += response_json.get("infos", [])
+            return alarms
         except requests.exceptions.ConnectionError:
             request_exception = BlaulichtSmsAlarmRequestException()
             self.logger.error(request_exception.message)
