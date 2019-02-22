@@ -26,9 +26,8 @@ class AlarmMonitor:
             config["blaulichtSMS Einsatzmonitor"]["customer_id"],
             config["blaulichtSMS Einsatzmonitor"]["username"],
             config["blaulichtSMS Einsatzmonitor"]["password"],
-            config["blaulichtSMS Einsatzmonitor"].get("show_infos", False))
-        self.hdmi_cec_controller = HdmiCecController(
-            int(config["Alarmmonitor"].get("cec_mode", 1)))
+            config["blaulichtSMS Einsatzmonitor"].getboolean("show_infos", False))
+        self.hdmi_cec_controller = HdmiCecController(config["Alarmmonitor"].getint("cec_mode", 1))
         session_id = self.blaulichtsms_controller.get_session()
         self.browser_controller = ChromiumBrowserController(session_id)
         self.browser_controller.start()
