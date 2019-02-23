@@ -50,9 +50,9 @@ def main():
     Expected behaviour:
 
     * Starts a Chromium browser instance which is displaying the blaulichtSMS Einsatzmonitor.
-    * Requests three times alarms from the blaulichtSMS mock API, with no active alarms.
-    * Receives an active alarm at the fourth API request and powers the HDMI device on.
-    * After 30 seconds the alarm is no longer active and the HDMI device switches to standby.
+    * Requests :api_update_count: times alarms from the blaulichtSMS mock API, with no active alarms.
+    * Receives an active alarm at the :api_request_count: + 1 API request and powers the HDMI device on.
+    * After :alarm_duration: seconds the alarm is no longer active and the HDMI device switches to standby.
     * Requests some more alarms without any active alarms.
     * Shuts down the alarm monitor and prints a summary containing the number of errors and warnings
       and the path to the log of the test.

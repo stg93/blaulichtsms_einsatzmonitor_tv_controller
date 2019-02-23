@@ -96,22 +96,30 @@ python3 main.py
 Zusätzlich zum Versenden des Logs einmal pro Tag per Mail, findet man im Verzeichnis `./log`die Logfiles der letzten 7 Tage.
 
 ## Test
+
+Das Packet `tests` enthält einen Systemtest.
+Dieser Test simuliert mit Hilfe eines Mocks der blaulichtSMS Dashboard API eine Alarmierung.
+
+Konkret sollte sich der Test folgendermaßen verhalten:
+
+* Starten des *alarmmonitor* Services. Während des Starts wird das HDMI Gerät ausgeschaltet.
+* 6 Abfragen der Mock API alle 10 Sekunden, die in keinen aktiven Alarmen resultieren.
+* Nach der 6. Abfrage liefert die Mock API einen aktiven Alarm.
+  Das HDMI Gerät wird eingeschaltet und der Einsatzmonitor eingezeigt.
+* Nach einer Minute sind keine Alarme aktiv und das HDMI Gerät wird ausgeschaltet.
+* Weitere Abfragen die keine aktiven Alarme zurückgeben.
+* Anzeigen einer Zusammenfassung des Tests mit der Anzahl der Fehler und Warnungen und dem Pfad des abgespeicherten Logs.
+
+Zum Ausführen des Systemtests muss die Environment Variable **PYTHONPATH** das Root Verzeichnis der Applikation enthalten.
+Diese kann mit `export PYTHONPATH=<absoluter_pfad_applikation_root>` gesetzt werden.
+
+Danach kann mit
+
 ```bash
-sudo python3 test.py
+python3 tests/systemtest.py
 ```
 
-führt einen Test mit folgenden Verhalten durch:
-
-* Starten der Anzeige des blaulichtSMS Einsatzmonitor Dashboards
-* Senden einer Abfrage an den blaulichtSMS Einsatzmonitor
-* Einschalten des HDMI Gerätes
-* Ausschalten des HDMI Gerätes nach 5 Minuten
-
-Während das HDMI Gerät eingeschaltet ist sollte das blaulichtSMS Einsatzmonitor Dashboard darauf sichtbar sein. Das Laden des Dashboards dauert am Anfang etwas.
-
-Am Ende wird eine Zusammenfassung des Tests angezeigt.
-
-Der Test kann auch ohne *sudo* ausgeführt werden, da aber Systemd die Applikation auch mit root-Rechten ausführt bildet ein Test mit *sudo* näher die tatsächliche Ausführung ab.
+der Systemtest gestartet werden. Die Ausführung des Tests kann nur vom Root Verzeichnis der Applikation gestartet werden.
 
 ## Lizenz
 Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICENSE))
@@ -124,7 +132,7 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 * VNC Server
 
 ### Wartung über das Internet:
-* ssh Zugang über [remot3.it](https://www.remot3.it/web/index.html)
+* ssh Zugang über [remot3.it](https://www.remot3.it/web/index.html) oder mittels Port Forwarding
 
 ### "Fehlerfreie" Anzeige:
 * Installieren von *unclutter* zum Ausblenden des Mauszeigers:
@@ -145,13 +153,14 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   ```
 
   zum automatischen Installieren von Sicherheitsupdates.
-* Ändern des Standard-Benutzers und Abfrage des Passwortes für die Verwendung von `sudo` wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben. Achtung: Um auf Netzwerkgeräte zugreifen zu können muss ein User in der *netdev* Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe *video* sein.
+* Ändern des Standard-Benutzers, erlauben von SSH nur mit Schlüsseln, installieren einer Firewall und von fail2ban wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
   
-* Da die Anwendung von Systemd als **root** User ausgeführt wird, sollte auch nur **root** schreibberechtigt sein. Sobald die Python Anwendung läuft lässt diese die root-Rechte fallen, da diese nicht erforderlich sind. Die Ausführung erfolgt stattdessen mit einem User, welcher bei der Konfiguration festgelegt wird. Dieser User sollte in einer Gruppe sein die lesesberechtigt ist.
+  **Achtung:** Um auf Netzwerkgeräte zugreifen zu können muss ein User in der *netdev* Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe *video* sein.
+* Die Konfigurationsdateien und die Logdateien enthalten sensible Daten und sollten nur berechtigte User lesbar sein.
 
-  Folgendes Berechtigungsschema berücksichtigt diese Punkte:
+  Folgendes Berechtigungsschema ist für den User, welcher bei der Konfiguration festgelegt wird, sinnvoll:
   ```bash
-  sudo chown -R root:<usergroup> .
+  sudo chown -R <username>:<usergroup> .
   sudo find . -type f -exec chmod 640 {} \;
   sudo chmod 740 INSTALL UNINSTALL
   sudo chmod 644 LICENSE README.md
