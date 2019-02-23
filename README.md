@@ -4,9 +4,12 @@
 ## Beschreibung
 Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/). Folgende Features sind enthalten:
 
-* Anzeigen des blaulichtSMS Einsatzmonitor Dashboards auf einem HDMI CEC fähigen Gerätes
+* Anzeigen des blaulichtSMS Einsatzmonitor Dashboards auf einem HDMI CEC fähigen Gerät
 * Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms und Ausschalten des Gerätes nach einer vorgegebenen Zeit
-* Senden des Logs eines Tages per Mail (für das Versenden ist ein Gmail Account erforderlich)
+* Senden des Logs eines Tages per Mail
+* Senden einer Mail beim Auftreten eines Fehlers bzw. bei dessen Behebung
+
+Für das Versenden von Mails ist ein Gmail Account erforderlich.
 
 Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die [Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
 
@@ -46,8 +49,8 @@ die Anwendung konfiguriert werden. Bei der Konfiguration werden folgende Informa
 
 * blaulichtSMS Einsatzmonitor Login Daten
 * Dauer nachdem das HDMI CEC Gerät nach einem Alarm wieder ausgeschaltet werden soll
-* Der System Usernamen unter welchem die Applikation ausgeführt werden soll
-* Ob das Versenden des Logs per Mail einmal am Tag erwünscht ist und falls ja
+* Der System Username unter welchem die Applikation ausgeführt werden soll
+* Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht, Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
 	* Die Gmail Login Daten
 	* Die Empfänger des Logs
 
