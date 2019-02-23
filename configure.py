@@ -27,14 +27,13 @@ class AlarmMonitorConfigurator:
         self.gmail_username = ""
         self.gmail_password = ""
         self.recipients = []
-        self.send_connection_errors = False
         self.send_errors = False
         self.send_starts = False
         self.send_log = False
 
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = "465"
-        self.subject = "Einsatzmonitor Log"
+        self.subject = "Einsatzmonitor"
 
         self.polling_interval = "30"
 
@@ -123,6 +122,7 @@ class AlarmMonitorConfigurator:
                 current_uid = getuid()
                 current_username = getpwuid(current_uid).pw_name
                 self.run_user = current_username
+                print("")
                 break
             elif self._is_valid_system_user(run_user):
                 self.run_user = run_user
@@ -134,7 +134,7 @@ class AlarmMonitorConfigurator:
 
     def _configure_gmail(self):
         email_notifications = \
-            self._is_yes_input("Do you want to send email notifications?")
+            self._is_yes_input("Do you want to receive email notifications?")
         if email_notifications:
             while True:
                 print("")
@@ -150,9 +150,6 @@ class AlarmMonitorConfigurator:
             print("")
             self._configure_recipients()
             print("")
-            self.send_connection_errors = self._is_yes_input(
-                "Do you want to send emails about internet connection errors?")
-            print("")
             self.send_errors = \
                 self._is_yes_input("Do you want to send emails about errors?")
             print("")
@@ -163,7 +160,7 @@ class AlarmMonitorConfigurator:
                 "Do you want to send the log of the day via email?")
 
     def _configure_gmail_username(self):
-        print("A Gmail account is required to send the log.")
+        print("A Gmail account is required to send email notifications.")
         self.gmail_username = self._get_input_with_validation(
             "Please enter the Gmail account's username:",
             "Please insert a valid Gmail address:",
@@ -200,10 +197,11 @@ class AlarmMonitorConfigurator:
 
     def _are_valid_blaulichtsms_credentials(self):
         try:
-            BlaulichtSmsController(
+            blaulichtsms_controller = BlaulichtSmsController(
                 self.blaulichtsms_customer_id,
                 self.blaulichtsms_username,
                 self.blaulichtsms_password)
+            blaulichtsms_controller.get_session()
             return True
         except BlaulichtSmsSessionInitException:
             return False
@@ -294,8 +292,6 @@ class AlarmMonitorConfigurator:
             self.hdmi_cec_device_on_time
         config["Alarmmonitor"]["polling_interval"] = self.polling_interval
         config["Alarmmonitor"]["run_user"] = self.run_user
-        config["Alarmmonitor"]["send_connection_errors"] = \
-            str(self.send_connection_errors)
         config["Alarmmonitor"]["send_errors"] = str(self.send_errors)
         config["Alarmmonitor"]["send_starts"] = str(self.send_starts)
 

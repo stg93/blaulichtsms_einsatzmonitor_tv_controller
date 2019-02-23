@@ -1,11 +1,12 @@
-from logging.handlers import TimedRotatingFileHandler
-from sendmail import MailSender
 import configparser
 import json
+import mmap
 import os
 import tarfile
 import threading
-import mmap
+from logging.handlers import TimedRotatingFileHandler
+
+from sendmail import MailSender
 
 
 class TimedRotatingFileSMTPHandler(TimedRotatingFileHandler):
@@ -18,6 +19,7 @@ class TimedRotatingFileSMTPHandler(TimedRotatingFileHandler):
     The file "config.ini" configures the Email settings.
     """
 
+    # noinspection PyPep8Naming
     def __init__(
         self, filename, configfilename, send_log, when='h', interval=1,
         backupCount=0, encoding=None, delay=False, utc=False, atTime=None
@@ -61,7 +63,8 @@ class TimedRotatingFileSMTPHandler(TimedRotatingFileHandler):
                 compressed_file
             )
 
-    def _get_file_to_compress(self):
+    @staticmethod
+    def _get_file_to_compress():
         file_to_compress = [
             file for file in os.listdir("log/")
             if not file.endswith(".tar.gz") and not file.endswith(".log")
@@ -69,7 +72,8 @@ class TimedRotatingFileSMTPHandler(TimedRotatingFileHandler):
         file_to_compress = os.path.join("log", file_to_compress)
         return file_to_compress
 
-    def _compress_file(self, file):
+    @staticmethod
+    def _compress_file(file):
         compressed_file = file + ".tar.gz"
         with tarfile.open(compressed_file, "w:gz") as tar:
             tar.add(file)
@@ -108,5 +112,6 @@ class TimedRotatingFileSMTPHandler(TimedRotatingFileHandler):
             + self._pluralize(start_count, "start")
         return summary_text
 
-    def _pluralize(self, count, singular):
+    @staticmethod
+    def _pluralize(count, singular):
         return singular + "\n" if count == 1 else singular + "s\n"

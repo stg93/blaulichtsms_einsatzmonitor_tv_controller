@@ -16,15 +16,9 @@ handlers:
     level: DEBUG
     send_log: false
     when: midnight
-  mail:
-    class: logginghandlers.smtperrorhandler.SMTPErrorHandler
-    configfilename: config.ini
-    formatter: simple
-    level: DEBUG
 root:
   handlers:
   - console
   - file
-  - mail
   level: DEBUG
 version: 1

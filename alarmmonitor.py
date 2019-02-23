@@ -8,15 +8,21 @@ from chromiumbrowsercontroller import ChromiumBrowserController
 class AlarmMonitor:
     """Controls the application's execution flow."""
 
-    def __init__(self, polling_interval, blaulichtsms_controller, hdmi_cec_controller, browser_controller):
+    def __init__(self, polling_interval, send_errors, send_starts,
+                 blaulichtsms_controller, hdmi_cec_controller, browser_controller, mail_sender):
         self.logger = logging.getLogger(__name__)
         self.scheduler = scheduler(time.time, time.sleep)
         self.blaulichtsms_controller = blaulichtsms_controller
         self.hdmi_cec_controller = hdmi_cec_controller
         self.browser_controller = browser_controller
+        self.mail_sender = mail_sender
         self.browser_controller.start()
 
         self._polling_interval = polling_interval
+        self._send_errors = send_errors
+        self._send_starts = send_starts
+
+        self._is_browser_error = False
 
     def _run_helper(self):
         """The main loop of the application.
@@ -41,12 +47,25 @@ class AlarmMonitor:
         """
         if not self.browser_controller.is_alive():
             self.logger.warning("The browser is not running. Starting it.")
+
+            if self._send_errors and not self._is_browser_error:
+                self.mail_sender.send_message(
+                    "The browser of the AlarmMonitor has crashed.\n"
+                    "A mail is sent as soon as the problem is resolved."
+                )
+                self._is_browser_error = True
+
             session_id = self.blaulichtsms_controller.get_session()
             self.browser_controller = ChromiumBrowserController(session_id)
             self.browser_controller.start()
+        elif self._is_browser_error:
+            self.mail_sender.send_message("The browser issue of the AlarmMonitor is resolved.")
+            self._is_browser_error = False
 
     def run(self):
         self.logger.info("START - Started alarm monitor")
+        if self._send_starts:
+            self.mail_sender.send_message("The AlarmMonitor has started.")
         try:
             self._run_helper()
             self.scheduler.run()

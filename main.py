@@ -4,6 +4,7 @@ import logging.config
 
 import yaml
 
+from alarmmonitormailsender import AlarmMonitorMailSender
 from blaulichtsmscontroller import BlaulichtSmsController
 from chromiumbrowsercontroller import ChromiumBrowserController
 from hdmiceccontroller import HdmiCecController
@@ -40,8 +41,10 @@ def main():
     # after dropping privileges
     from alarmmonitor import AlarmMonitor
 
-    alarm_duration = int(CONFIG["Alarmmonitor"]["hdmi_cec_device_on_time"])
-    polling_interval = int(CONFIG["Alarmmonitor"]["polling_interval"])
+    alarm_duration = CONFIG.getint("Alarmmonitor", "hdmi_cec_device_on_time")
+    polling_interval = CONFIG.getint("Alarmmonitor", "polling_interval")
+    send_errors = CONFIG.getboolean("Alarmmonitor", "send_errors")
+    send_starts = CONFIG.getboolean("Alarmmonitor", "send_starts")
 
     blaulichtsms_controller = BlaulichtSmsController(
         CONFIG["blaulichtSMS Einsatzmonitor"]["customer_id"],
@@ -49,10 +52,12 @@ def main():
         CONFIG["blaulichtSMS Einsatzmonitor"]["password"],
         alarm_duration=alarm_duration
     )
-    hdmi_cec_controller = HdmiCecController()
+    mail_sender = AlarmMonitorMailSender()
+    hdmi_cec_controller = HdmiCecController(send_errors, mail_sender)
     browser_controller = ChromiumBrowserController(blaulichtsms_controller.get_session())
 
-    alarm_monitor = AlarmMonitor(polling_interval, blaulichtsms_controller, hdmi_cec_controller, browser_controller)
+    alarm_monitor = AlarmMonitor(polling_interval, send_errors, send_starts,
+                                 blaulichtsms_controller, hdmi_cec_controller, browser_controller, mail_sender)
     alarm_monitor.run()
 
 

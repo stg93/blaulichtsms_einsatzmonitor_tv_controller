@@ -84,7 +84,7 @@ def main():
         alarm_duration=alarm_duration,
         base_url="http://localhost:5000/"
     )
-    hdmi_cec_controller = HdmiCecController()
+    hdmi_cec_controller = HdmiCecController(False, None)
     browser_controller = ChromiumBrowserController(mock_blaulichtsms_controller.get_session())
 
     alarm_monitor_test = AlarmMonitorTest(polling_interval, mock_blaulichtsms_controller, hdmi_cec_controller,

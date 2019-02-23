@@ -5,13 +5,8 @@ from pprint import pformat
 import requests
 
 
-class BlaulichtSmsException(Exception):
+class BlaulichtSmsSessionInitException(Exception):
     pass
-
-
-class BlaulichtSmsSessionInitException(BlaulichtSmsException):
-    def __init__(self):
-        self.message = "Unable to initialize session"
 
 
 class BlaulichtSmsController:
@@ -46,12 +41,10 @@ class BlaulichtSmsController:
             }
             response = requests.post(self.base_url + "login", json=content)
             session_id = response.json()["sessionId"]
-            if not session_id:
-                raise BlaulichtSmsSessionInitException()
             self.logger.info("Successfully initialized blaulichtSMS session")
             return session_id
-        except requests.exceptions.ConnectionError:
-            raise BlaulichtSmsSessionInitException()
+        except requests.exceptions.ConnectionError as e:
+            raise BlaulichtSmsSessionInitException() from e
 
     def _get_alarms(self):
         """Gets the alarms from the blaulichtSMS Dashboard API"""
