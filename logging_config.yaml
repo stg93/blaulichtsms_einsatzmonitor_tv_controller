@@ -9,7 +9,7 @@ handlers:
     stream: ext://sys.stdout
   file:
     backupCount: 6
-    class: logginghandlers.TimedRotatingFileSMTPHandler
+    class: logginghandlers.timedrotatingfilesmtphandler.TimedRotatingFileSMTPHandler
     configfilename: config.ini
     filename: log/alarmmonitor.log
     formatter: simple
