@@ -168,6 +168,10 @@ echo "standby 0" | cec-client -s -d 1
 echo "as" | cec-client -s -d 1
 ```
 
+## Danksagungen
+
+[r00tat](https://github.com/r00tat) danke für die libCEC Implementierung, die Alarmüberprüfung
+bei mehreren Alarmen und die Inkludierung der blaulichtSMS Infos.
 
 ## Lizenz
 Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICENSE))
