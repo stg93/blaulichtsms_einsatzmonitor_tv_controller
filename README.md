@@ -5,7 +5,7 @@
 Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/). Folgende Features sind enthalten:
 
 * Anzeigen des blaulichtSMS Einsatzmonitor Dashboards auf einem HDMI CEC fähigen Gerät
-* Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms und Ausschalten des Gerätes nach einer vorgegebenen Zeit
+* Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms oder wahlweise auch bei neuen Informationen und Ausschalten des Gerätes nach einer vorgegebenen Zeit
 * Senden des Logs eines Tages per Mail
 * Senden einer Mail beim Auftreten eines Fehlers bzw. bei dessen Behebung
 
@@ -48,6 +48,7 @@ python3 configure.py
 die Anwendung konfiguriert werden. Bei der Konfiguration werden folgende Informationen abgefragt:
 
 * blaulichtSMS Einsatzmonitor Login Daten
+* Ob blaulichtSMS Informationen auch beachtet werden sollen
 * Dauer nachdem das HDMI CEC Gerät nach einem Alarm wieder ausgeschaltet werden soll
 * Der System Username unter welchem die Applikation ausgeführt werden soll
 * Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht, Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
@@ -124,6 +125,50 @@ python3 tests/systemtest.py
 
 der Systemtest gestartet werden. Die Ausführung des Tests kann nur vom Root Verzeichnis der Applikation gestartet werden.
 
+## HDMI Geräte Steuerung
+
+Die Steuerung eines HDMI Gerätes erfolgt mittels HDMI CEC. Für diese Steuerung sind zwei Modi implementiert.
+Eine Implemetierung verwendet [Pulse-Eight libCEC](https://github.com/Pulse-Eight/libcec) direkt,
+die andere verwendet die Python bindings der libCEC von [trainmain419](https://github.com/trainman419/python-cec).
+Wird *python-cec* via *pip* installiert handelt es sich um Version 0.2.6.
+Bei dieser Version schlägt manchmal die Initialisierung fehl.
+Daher kann man auf die direkte Verwendung der *libCEC* umstellen.
+
+Welche Implementierung verwendet wird kann in der `config.ini` festgelegt werden:
+
+```
+# libCEC
+cec_mode = 1
+
+# python-cec
+cec_mode = 2
+```
+
+Installiert man *python-cec* direkt vom source code, ist Version 0.2.7 aktuell.
+Ob das Initalisierungproblem darin behoben ist wurde nicht getestet.
+
+### libCEC Shell Befehle
+
+Mit folgenden Befehlen kann ein HDMI CEC Gerät via libCEC direkt von einer Shell gesteuert werden: 
+
+```bash
+# list known devices
+cec-client -l
+
+# scan for devices
+echo "scan" | cec-client -s -d 1
+
+# put device 0 to on
+echo "on 0" | cec-client -s -d 1
+
+# put device 0 to standby
+echo "standby 0" | cec-client -s -d 1
+
+# change source to current
+echo "as" | cec-client -s -d 1
+```
+
+
 ## Lizenz
 Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICENSE))
 
@@ -168,28 +213,7 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   sudo chmod 740 INSTALL UNINSTALL
   sudo chmod 644 LICENSE README.md
   ```
-
-### HDMI CEC Kommandos
-
-Mit folgenden Befehlen kann ein Montior gesteuert werden:
-
-```bash
-# list known devices
-cec-client -l
-
-# scan for devices
-echo scan | cec-client -s -d 1
-
-# put device 0 to on
-echo "on 0" | cec-client -d 1 -s
-
-# put device 0 to standby
-echo 'standby 0' | cec-client -s -d 1
-
-# change source to current
-echo "as" | cec-client -s
-```
-
+  
 ## Getestetes System
 Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 * Raspberry Pi Zero W

@@ -16,7 +16,6 @@ from sendmail import MailSender
 
 
 class AlarmMonitorConfigurator:
-    # TODO add info setting
     def __init__(self):
         self.blaulichtsms_customer_id = ""
         self.blaulichtsms_username = ""
@@ -83,6 +82,7 @@ class AlarmMonitorConfigurator:
             else:
                 break
         self._configure_blaulichtsms_show_infos()
+        print("")
 
     def _configure_blaulichtsms_customer_id(self):
         self.blaulichtsms_customer_id = self._get_input_with_validation(
