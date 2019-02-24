@@ -3,9 +3,9 @@ from multiprocessing import Process
 
 from blaulichtsmscontroller import BlaulichtSmsController
 from chromiumbrowsercontroller import ChromiumBrowserController
-from hdmiceccontroller import HdmiCecController
-from main import get_logging_config, set_up_logging
+from main import get_logging_config, set_up_logging, get_cec_controller
 from tests import dashboardapimock
+from tests.alarmmonitortest import AlarmMonitorTest
 from tests.dashboardapimock import app, Alarm
 
 logger = None
@@ -60,11 +60,6 @@ def main():
     logging_config = get_logging_config("logging_config_test.yaml")
     set_up_logging(logging_config)
 
-    # importing after drop_privileges to prevent Python from importing
-    # the root cec module in hdmiceccontroller and causing problems
-    # after dropping privileges
-    from tests.alarmmonitortest import AlarmMonitorTest
-
     config = configparser.ConfigParser()
     config.read("config.ini")
 
@@ -84,7 +79,7 @@ def main():
         alarm_duration=alarm_duration,
         base_url="http://localhost:5000/"
     )
-    hdmi_cec_controller = HdmiCecController(False, None)
+    hdmi_cec_controller = get_cec_controller(config, False, None)
     browser_controller = ChromiumBrowserController(mock_blaulichtsms_controller.get_session())
 
     alarm_monitor_test = AlarmMonitorTest(polling_interval, mock_blaulichtsms_controller, hdmi_cec_controller,
