@@ -7,7 +7,7 @@ import yaml
 from alarmmonitormailsender import AlarmMonitorMailSender
 from blaulichtsmscontroller import BlaulichtSmsController
 from chromiumbrowsercontroller import ChromiumBrowserController
-from hdmiceccontroller import HdmiCecController
+from hdmiceccontroller import CecMode, PythonCecController, LibCecController
 
 logger = None
 
@@ -46,6 +46,15 @@ def main():
     send_errors = CONFIG.getboolean("Alarmmonitor", "send_errors")
     send_starts = CONFIG.getboolean("Alarmmonitor", "send_starts")
 
+    cec_mode_index = None
+    try:
+        cec_mode_index = CONFIG.getint("Alarmmonitor", "cec_mode")
+        cec_mode = CecMode(cec_mode_index)
+    except ValueError:
+        logger.warning("Invalid CEC mode: " + cec_mode_index)
+        cec_mode = CecMode.PYTHON_CEC
+    logger.info("Using CEC mode: " + cec_mode.name)
+
     blaulichtsms_controller = BlaulichtSmsController(
         CONFIG["blaulichtSMS Einsatzmonitor"]["customer_id"],
         CONFIG["blaulichtSMS Einsatzmonitor"]["username"],
@@ -53,7 +62,12 @@ def main():
         alarm_duration=alarm_duration
     )
     mail_sender = AlarmMonitorMailSender()
-    hdmi_cec_controller = HdmiCecController(send_errors, mail_sender)
+
+    if cec_mode == CecMode.PYTHON_CEC:
+        hdmi_cec_controller = PythonCecController(send_errors, mail_sender)
+    else:
+        hdmi_cec_controller = LibCecController(send_errors, mail_sender)
+
     browser_controller = ChromiumBrowserController(blaulichtsms_controller.get_session())
 
     alarm_monitor = AlarmMonitor(polling_interval, send_errors, send_starts,

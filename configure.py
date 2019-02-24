@@ -16,6 +16,7 @@ from sendmail import MailSender
 
 
 class AlarmMonitorConfigurator:
+    # TODO add info setting
     def __init__(self):
         self.blaulichtsms_customer_id = ""
         self.blaulichtsms_username = ""
