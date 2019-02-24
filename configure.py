@@ -11,7 +11,7 @@ from pwd import getpwuid, getpwnam
 import yaml
 
 from blaulichtsmscontroller import BlaulichtSmsController
-from blaulichtsmscontroller import BlaulichtSmsSessionInitException
+from hdmiceccontroller import CecMode
 from sendmail import MailSender
 
 
@@ -21,6 +21,7 @@ class AlarmMonitorConfigurator:
         self.blaulichtsms_customer_id = ""
         self.blaulichtsms_username = ""
         self.blaulichtsms_password = ""
+        self.blaulichtsms_show_infos = False
 
         self.hdmi_cec_device_on_time = "0"
         self.run_user = ""
@@ -31,6 +32,7 @@ class AlarmMonitorConfigurator:
         self.send_errors = False
         self.send_starts = False
         self.send_log = False
+        self.cec_mode = CecMode.PYTHON_CEC
 
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = "465"
@@ -80,6 +82,7 @@ class AlarmMonitorConfigurator:
                     "Unable to connect with the given credentials.")
             else:
                 break
+        self._configure_blaulichtsms_show_infos()
 
     def _configure_blaulichtsms_customer_id(self):
         self.blaulichtsms_customer_id = self._get_input_with_validation(
@@ -96,6 +99,9 @@ class AlarmMonitorConfigurator:
         self.blaulichtsms_password = self._get_password_input(
             "Please enter your blaulichtSMS Einsatzmonitor password:"
         )
+
+    def _configure_blaulichtsms_show_infos(self):
+        self.blaulichtsms_show_infos = self._is_yes_input("Do you want to show infos in addition to alarms?")
 
     def _configure_alarmmonitor(self):
         self._configure_hdmi_cec_device_on_time()
@@ -197,15 +203,11 @@ class AlarmMonitorConfigurator:
         return re.match("^[0-9]{6}$", customer_id)
 
     def _are_valid_blaulichtsms_credentials(self):
-        try:
-            blaulichtsms_controller = BlaulichtSmsController(
-                self.blaulichtsms_customer_id,
-                self.blaulichtsms_username,
-                self.blaulichtsms_password)
-            blaulichtsms_controller.get_session()
-            return True
-        except BlaulichtSmsSessionInitException:
-            return False
+        blaulichtsms_controller = BlaulichtSmsController(
+            self.blaulichtsms_customer_id,
+            self.blaulichtsms_username,
+            self.blaulichtsms_password)
+        return blaulichtsms_controller.get_session() is not None
 
     @staticmethod
     def _is_positive_int(integer_string):
@@ -281,20 +283,18 @@ class AlarmMonitorConfigurator:
         return config
 
     def _write_blaulichtsms_section(self, config):
-        config["blaulichtSMS Einsatzmonitor"]["customer_id"] = \
-            self.blaulichtsms_customer_id
-        config["blaulichtSMS Einsatzmonitor"]["username"] = \
-            self.blaulichtsms_username
-        config["blaulichtSMS Einsatzmonitor"]["password"] = \
-            self.blaulichtsms_password
+        config["blaulichtSMS Einsatzmonitor"]["customer_id"] = self.blaulichtsms_customer_id
+        config["blaulichtSMS Einsatzmonitor"]["username"] = self.blaulichtsms_username
+        config["blaulichtSMS Einsatzmonitor"]["password"] = self.blaulichtsms_password
+        config["blaulichtSMS Einsatzmonitor"]["show_infos"] = str(self.blaulichtsms_show_infos)
 
     def _write_alarmmonitor_section(self, config):
-        config["Alarmmonitor"]["hdmi_cec_device_on_time"] = \
-            self.hdmi_cec_device_on_time
+        config["Alarmmonitor"]["hdmi_cec_device_on_time"] = self.hdmi_cec_device_on_time
         config["Alarmmonitor"]["polling_interval"] = self.polling_interval
         config["Alarmmonitor"]["run_user"] = self.run_user
         config["Alarmmonitor"]["send_errors"] = str(self.send_errors)
         config["Alarmmonitor"]["send_starts"] = str(self.send_starts)
+        config["Alarmmonitor"]["cec_mode"] = str(self.cec_mode.value)
 
     def _write_email_section(self, config):
         config["Email"]["username"] = self.gmail_username
