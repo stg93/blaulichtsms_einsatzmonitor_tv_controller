@@ -1,0 +1,3 @@
+Added operating time for screen (on_time, off_time)
+Added screensaver (instead of CEC) with cec_mode = 3
+
