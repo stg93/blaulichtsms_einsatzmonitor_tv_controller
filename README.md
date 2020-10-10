@@ -133,6 +133,7 @@ die andere verwendet die Python bindings der libCEC von [trainmain419](https://g
 Wird *python-cec* via *pip* installiert handelt es sich um Version 0.2.6.
 Bei dieser Version schlägt manchmal die Initialisierung fehl.
 Daher kann man auf die direkte Verwendung der *libCEC* umstellen.
+Falls das Gerät kein HDMI CEC unterstützt, kann auch ein Bildschirmschoner (command: "xset dpms force off/on") stattdessen verwendet werden.
 
 Welche Implementierung verwendet wird kann in der `config.ini` festgelegt werden:
 
@@ -142,6 +143,9 @@ cec_mode = 1
 
 # python-cec
 cec_mode = 2
+
+# screensaver
+cec_mode = 3
 ```
 
 Installiert man *python-cec* direkt vom source code, ist Version 0.2.7 aktuell.
