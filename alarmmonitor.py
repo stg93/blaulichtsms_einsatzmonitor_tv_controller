@@ -37,6 +37,8 @@ class AlarmMonitor:
         self._check_browser_status()
         if self.blaulichtsms_controller.is_alarm():
             self.hdmi_cec_controller.power_on()
+        elif self.blaulichtsms_controller.is_showtime():
+            self.hdmi_cec_controller.power_on()
         else:
             self.hdmi_cec_controller.standby()
 

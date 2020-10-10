@@ -15,13 +15,15 @@ class BlaulichtSmsController:
     <https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md>`_
     """
 
-    def __init__(self, customer_id, username, password, alarm_duration=3600, show_infos=False,
+    def __init__(self, customer_id, username, password, on_time="08:00", off_time="19:00", alarm_duration=3600, show_infos=False, 
                  base_url="https://api.blaulichtsms.net/blaulicht/api/alarm/v1/dashboard/"):
         self.logger = logging.getLogger(__name__)
 
         self.customer_id = customer_id
         self.username = username
         self.password = password
+        self.on_time = on_time
+        self.off_time = off_time
         self.alarm_duration = timedelta(seconds=alarm_duration)
         self.show_infos = show_infos
         self.base_url = base_url
@@ -90,3 +92,22 @@ class BlaulichtSmsController:
                 return True
         self.logger.info("No active alarm found")
         return False
+
+
+    def is_showtime(self):
+        """Checks if the screen should be switched on.
+        """
+        
+        """Get current time """
+        jetzt = datetime.now().time()
+
+        """Assign time range """
+        start_time = datetime.strptime(self.on_time, "%H:%M").time()
+        end_time = datetime.strptime(self.off_time, "%H:%M").time()
+
+        show = False
+        if  jetzt >= start_time:
+            if jetzt < end_time:
+                show = True
+                
+        return show

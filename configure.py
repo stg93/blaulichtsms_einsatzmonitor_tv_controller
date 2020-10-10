@@ -295,6 +295,8 @@ class AlarmMonitorConfigurator:
         config["Alarmmonitor"]["send_errors"] = str(self.send_errors)
         config["Alarmmonitor"]["send_starts"] = str(self.send_starts)
         config["Alarmmonitor"]["cec_mode"] = str(self.cec_mode.value)
+        config["Alarmmonitor"]["on_time"] = "08:00"
+        config["Alarmmonitor"]["off_time"] = "19:00"
 
     def _write_email_section(self, config):
         config["Email"]["username"] = self.gmail_username
