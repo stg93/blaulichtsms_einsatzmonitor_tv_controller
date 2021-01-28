@@ -8,8 +8,8 @@ from chromiumbrowsercontroller import ChromiumBrowserController
 class AlarmMonitor:
     """Controls the application's execution flow."""
 
-    def __init__(self, polling_interval, send_errors, send_starts,
-                 blaulichtsms_controller, hdmi_cec_controller, browser_controller, mail_sender):
+    def __init__(self, polling_interval, send_errors, send_starts, blaulichtsms_controller,
+                 hdmi_cec_controller, browser_controller, mail_sender):
         self.logger = logging.getLogger(__name__)
         self.scheduler = scheduler(time.time, time.sleep)
         self.blaulichtsms_controller = blaulichtsms_controller
@@ -36,7 +36,7 @@ class AlarmMonitor:
 
         self._check_browser_status()
         if self.blaulichtsms_controller.is_alarm():
-            self.hdmi_cec_controller.power_on()
+            self.hdmi_cec_controller.activate_source()
         else:
             self.hdmi_cec_controller.standby()
 
@@ -50,10 +50,8 @@ class AlarmMonitor:
             self.logger.warning("The browser is not running. Starting it.")
 
             if self._send_errors and not self._is_browser_error:
-                self.mail_sender.send_message(
-                    "The browser of the AlarmMonitor has crashed.\n"
-                    "A mail is sent as soon as the problem is resolved."
-                )
+                self.mail_sender.send_message("The browser of the AlarmMonitor has crashed.\n"
+                                              "A mail is sent as soon as the problem is resolved.")
                 self._is_browser_error = True
 
             session_id = self.blaulichtsms_controller.get_session()
