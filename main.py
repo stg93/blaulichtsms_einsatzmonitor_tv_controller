@@ -26,7 +26,7 @@ def set_up_logging(logging_config):
 
 def get_logging_config(logging_config_filepath):
     with open(logging_config_filepath) as logging_config_file:
-        logging_config = yaml.load(logging_config_file)
+        logging_config = yaml.safe_load(logging_config_file)
     return logging_config
 
 
@@ -64,13 +64,13 @@ def main():
         config["blaulichtSMS Einsatzmonitor"]["username"],
         config["blaulichtSMS Einsatzmonitor"]["password"],
         alarm_duration=alarm_duration,
-        show_infos=show_infos
-    )
+        show_infos=show_infos)
     mail_sender = AlarmMonitorMailSender()
     hdmi_cec_controller = get_cec_controller(config, send_errors, mail_sender)
     browser_controller = ChromiumBrowserController(blaulichtsms_controller.get_session())
     alarm_monitor = AlarmMonitor(polling_interval, send_errors, send_starts,
-                                 blaulichtsms_controller, hdmi_cec_controller, browser_controller, mail_sender)
+                                 blaulichtsms_controller, hdmi_cec_controller, browser_controller,
+                                 mail_sender)
     alarm_monitor.run()
 
 
