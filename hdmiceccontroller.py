@@ -169,7 +169,7 @@ class LibCecController(AbstractCecController):
     def _init_cec_connection(self):
         self.logger.debug('initializing CEC connection')
         self.cecclient = subprocess.Popen(
-            ['cec-client', '-d', '{}'.format(self._debug_level)],
+            ['cec-client', '-d', '{}'.format(self._debug_level), '-o', 'alarmmonitor'],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
