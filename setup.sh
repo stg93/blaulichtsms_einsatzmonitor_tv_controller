@@ -22,7 +22,8 @@ echo "Configuring alarmmonitor"
 if [[ -f "../config.ini" ]]; then
   echo "Using predefined config"
   cp ../config.ini ./
-  sed -i "s|User=.*|User=${USERNAME}|g" alarmmonitor.service
+  echo "Setting service user to ${USER}"
+  sed -i "s|User=.*|User=${USER}|g" alarmmonitor.service
 else
   python3 configure.py
 fi
