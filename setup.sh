@@ -2,9 +2,8 @@
 # Auto setup script for alarmmonitor
 set -eo pipefail
 
-GITHUB_USER="r00tat"
+GITHUB_USER="stg93"
 GITHUB_BRANCH="master"
-# GITHUB_USER="stg93"
 GITHUB_DOWNLOAD_URL="https://github.com/${GITHUB_USER}/blaulichtsms_einsatzmonitor_tv_controller/archive/${GITHUB_BRANCH}.zip"
 GITHUB_REPO="https://github.com/${GITHUB_USER}/blaulichtsms_einsatzmonitor_tv_controller.git"
 

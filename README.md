@@ -43,6 +43,19 @@ hinzugefügt werden.
 
 ## Installation
 
+### Automatische Installation
+
+Mit diesem Befehl wird `setup.sh` von github geladen und automatisch ausgeführt.
+
+```bash
+curl https://raw.githubusercontent.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/master/setup.sh | bash -
+```
+
+Ist bereits eine `config.ini` vorhanden, kann diese vor dem Ausführen im aktuellen Ordner abgelet werden.
+Das setup script kopiert diese automatisch in das Ausführungsverzeichnis und startet nicht den Konfigurationswizard.
+
+### Volle Installation
+
 Zuerst muss via
 
 ```bash
