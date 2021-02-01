@@ -20,8 +20,9 @@ cd blaulichtsms_einsatzmonitor_tv_controller
 
 echo "Configuring alarmmonitor"
 if [[ -f "../config.ini" ]]; then
-  # use predefined config
-  cp ../config.ini .
+  echo "Using predefined config"
+  cp ../config.ini ./
+  sed -i "s|User=.*|User=${USERNAME}|g" alarmmonitor.service
 else
   python3 configure.py
 fi
