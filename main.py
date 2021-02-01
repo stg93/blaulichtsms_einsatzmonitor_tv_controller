@@ -8,7 +8,7 @@ from alarmmonitor import AlarmMonitor
 from alarmmonitormailsender import AlarmMonitorMailSender
 from blaulichtsmscontroller import BlaulichtSmsController
 from chromiumbrowsercontroller import ChromiumBrowserController
-from hdmiceccontroller import CecMode, PythonCecController, LibCecController
+from hdmiceccontroller import (CecLogging, CecMode, LibCecController, PythonCecController)
 
 logger = None
 
@@ -37,13 +37,32 @@ def get_cec_controller(config, send_errors, mail_sender):
         cec_mode = CecMode(cec_mode_index)
     except ValueError:
         logger.warning("Invalid CEC mode: " + cec_mode_index)
-        cec_mode = CecMode.PYTHON_CEC
+        cec_mode = CecMode.LIB_CEC
     logger.info("Using CEC mode: " + cec_mode.name)
+
+    cec_logging_index = None
+    try:
+        cec_logging_index = config.getint("Alarmmonitor",
+                                          "cec_logging",
+                                          fallback=CecLogging.CEC_LOG_ERROR.value)
+        cec_logging = CecMode(cec_logging_index)
+    except ValueError:
+        logger.warning("Invalid CEC logging level: " + cec_logging_index)
+        cec_logging = CecLogging.CEC_LOG_ERROR
+
+    try:
+        device_id = config.get("Alarmmonitor", "cec_device_id", fallback="1")
+    except ValueError:
+        logger.warning("Invalid cec_device_id")
+        device_id = "1"
 
     if cec_mode == CecMode.PYTHON_CEC:
         return PythonCecController(send_errors, mail_sender)
     else:
-        return LibCecController(send_errors, mail_sender)
+        return LibCecController(send_errors,
+                                mail_sender,
+                                debug_level=cec_logging,
+                                device_id=device_id)
 
 
 def main():
