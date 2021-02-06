@@ -2,10 +2,15 @@
 # Auto setup script for alarmmonitor
 set -eo pipefail
 
-GITHUB_USER="stg93"
-GITHUB_BRANCH="master"
-GITHUB_DOWNLOAD_URL="https://github.com/${GITHUB_USER}/blaulichtsms_einsatzmonitor_tv_controller/archive/${GITHUB_BRANCH}.zip"
-GITHUB_REPO="https://github.com/${GITHUB_USER}/blaulichtsms_einsatzmonitor_tv_controller.git"
+if [[ -n "$TRACE" ]]; then
+  set -x
+fi
+
+GITHUB_USER=${GITHUB_USER:-"stg93"}
+GITHUB_BRANCH=${GITHUB_BRANCH:-"master"}
+GITHUB_REPO_NAME=${GITHUB_REPO_NAME:-"blaulichtsms_einsatzmonitor_tv_controller"}
+GITHUB_DOWNLOAD_URL="https://github.com/${GITHUB_USER}/${GITHUB_REPO_NAME}/archive/${GITHUB_BRANCH}.zip"
+GITHUB_REPO="https://github.com/${GITHUB_USER}/${GITHUB_REPO_NAME}.git"
 
 echo
 echo "Installing dependencies"
@@ -15,7 +20,7 @@ sudo pip3 install --system "requests" "cec" "pyyaml"
 echo
 echo "cloning alarmmonitor from Github"
 git clone -b "${GITHUB_BRANCH}" "${GITHUB_REPO}"
-cd blaulichtsms_einsatzmonitor_tv_controller
+cd "${GITHUB_REPO_NAME}"
 
 echo "Configuring alarmmonitor"
 if [[ -f "../config.ini" ]]; then
