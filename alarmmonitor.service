@@ -8,7 +8,7 @@ WorkingDirectory=
 ExecStart=/usr/bin/python3 main.py
 Restart=always
 RestartSec=3
-User=
+User=pi
 
 [Install]
 WantedBy=default.target

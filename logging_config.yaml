@@ -1,11 +1,11 @@
 formatters:
   simple:
-    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 handlers:
   console:
     class: logging.StreamHandler
     formatter: simple
-    level: DEBUG
+    level: WARNING
     stream: ext://sys.stdout
   file:
     backupCount: 6
@@ -13,7 +13,7 @@ handlers:
     configfilename: config.ini
     filename: log/alarmmonitor.log
     formatter: simple
-    level: DEBUG
+    level: INFO
     send_log: false
     when: midnight
 root:
