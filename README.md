@@ -19,18 +19,17 @@ Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspbian St
 
 Folgende Bibliotheken werden benötigt:
 
-- APT Packete:
-  - cec-utils
-  - libcec4-dev
-- Pip Packete:
-  - pyyaml
-  - cec
+* APT Packete:
+	* cec-utils
+	* python3-cec
+* Pip Packete:
+	* pyyaml
+	* cec
 
 Zum Installieren der Äbhängigkeiten folgenden Befehle ausführen:
 
 ```bash
-sudo apt install cec-utils libcec4-dev
-pip3 install --system pyyaml cec
+sudo apt install cec-utils python3-cec python3-yaml
 ```
 
 Um Python Packete systemweit mit `pip3 install --system` installieren zu können muss der User der die Installation ausführt in der Gruppe _staff_ sein. Ein User kann zu dieser Gruppe mit:

@@ -9,7 +9,7 @@ fi
 
 
 # Check dependencies
-requiredAptDependencies=( "cec-utils" "libcec4")
+requiredAptDependencies=( "cec-utils" )
 missingAptDependencies=()
 
 echo "Checking apt dependencies..."
