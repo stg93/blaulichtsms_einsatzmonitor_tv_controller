@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Make sure only root can run this script
 if [[ $EUID -ne 0 ]]; then
@@ -8,7 +9,7 @@ fi
 
 
 # Check dependencies
-requiredAptDependencies=( "cec-utils" "libcec4-dev" )
+requiredAptDependencies=( "cec-utils" )
 missingAptDependencies=()
 
 echo "Checking apt dependencies..."
@@ -23,11 +24,13 @@ done
 
 if [ ${#missingAptDependencies[@]} -gt 0 ]
 then
-	printf "Please install missing apt packages via\n"
-	printf "\t'sudo apt install"
+	# printf "Please install missing apt packages via\n"
+	# printf "\t'sudo apt install"
 	for elem in "${missingAptDependencies[@]}"
 	do
-		printf " $elem"
+		printf "trying to install $elem\n"
+		apt -y -q install $elem
+		# printf " $elem"
 	done
 	printf "'\n"
 else
@@ -55,13 +58,15 @@ done
 
 if [ ${#missingPipDependencies[@]} -gt 0 ]
 then
-	printf "Please install missing pip packages via\n"
-	printf "\t'pip3 install --system"
+	# printf "Please install missing pip packages via\n"
+	# printf "\t'pip3 install --system"
 	for elem in "${missingPipDependencies[@]}"
 	do
-		printf " $elem"
+		# printf " $elem"
+		printf "Insalling $elem\n"
+		pip3 install --system $elem
 	done
-	printf "'\n"
+	# printf "'\n"
   printf "\n"
   printf "Note that a user has to be in the group 'staff' to install Python packages globally.\n"
   printf "To add a user to the 'staff' group execute 'sudo adduser <username> staff'.\n"
@@ -70,10 +75,10 @@ else
 fi
 echo ""
 
-if [ ${#missingAptDependencies[@]} -gt 0 ] || [ ${#missingPipDependencies[@]} -gt 0 ]
-then
-	exit 1
-fi
+# if [ ${#missingAptDependencies[@]} -gt 0 ] || [ ${#missingPipDependencies[@]} -gt 0 ]
+# then
+# 	exit 1
+# fi
 
 
 # Starting installation
