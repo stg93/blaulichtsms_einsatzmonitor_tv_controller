@@ -322,4 +322,4 @@ Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 
 ## Fragen und Probleme
 
-Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new).
+Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new). Da es sich um ein reines Hobbyprojekt handelt wird das Projekt nur sehr sporadisch gewartet und weiterentwickelt.
