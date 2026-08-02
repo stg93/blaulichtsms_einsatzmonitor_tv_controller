@@ -92,7 +92,7 @@ echo ""
 
 
 if [ $? -ne 0 ]; then
-    echo "Errors occured during installation" > /dev/stderr
+    echo "Errors occurred during installation" > /dev/stderr
     exit 1
 fi
 echo "Installation successful"
