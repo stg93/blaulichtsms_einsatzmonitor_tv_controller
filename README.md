@@ -125,9 +125,28 @@ python3 main.py
 
 Zusätzlich zum Versenden des Logs einmal pro Tag per Mail, findet man im Verzeichnis `./log`die Logfiles der letzten 7 Tage.
 
+## Entwicklung
+
+Für die Entwicklung verwaltet [uv](https://docs.astral.sh/uv/) die Python Abhängigkeiten.
+Sie sind in `pyproject.toml` definiert und in `uv.lock` mit exakten Versionen festgehalten.
+Die Installation auf dem Raspberry Pi verwendet weiterhin die APT Packete (siehe oben).
+
+```bash
+uv sync                # Abhängigkeiten inkl. pytest, ruff und flask installieren
+uv sync --extra cec    # zusätzlich python-cec für cec_mode = 2 (benötigt libcec-dev build-essential python3-dev)
+uv run pytest          # Unit Tests ausführen
+uv run ruff check .    # Linter
+uv run ruff format .   # Formatierung
+uv lock --upgrade      # alle Abhängigkeiten aktualisieren
+```
+
+Dependabot aktualisiert `uv.lock` wöchentlich per Pull Request.
+
 ## Test
 
-Das Packet `tests` enthält einen Systemtest.
+Die Unit Tests in `tests/unit` laufen ohne Hardware und werden mit `uv run pytest` gestartet.
+
+Das Packet `tests` enthält zusätzlich einen Systemtest.
 Dieser Test simuliert mit Hilfe eines Mocks der blaulichtSMS Dashboard API eine Alarmierung.
 
 Konkret sollte sich der Test folgendermaßen verhalten:

@@ -1,4 +1,0 @@
-requests
-pyyaml
-# only required for cec_mode = 2, needs libcec-dev build-essential python3-dev
-# cec
