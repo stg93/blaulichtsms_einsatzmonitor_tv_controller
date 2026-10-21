@@ -1,15 +1,42 @@
 from alarmmonitor import AlarmMonitor
+from blaulichtsmscontroller import BlaulichtSmsController
+from chromiumbrowsercontroller import ChromiumBrowserController
+from hdmiceccontroller import AbstractCecController
 
 
 class AlarmMonitorTest(AlarmMonitor):
-    def __init__(self, polling_interval, blaulichtsms_controller, hdmi_cec_controller, browser_controller,
-                 alarm_requests_count):
-        super().__init__(polling_interval, False, False,
-                         blaulichtsms_controller, hdmi_cec_controller, browser_controller, None)
+    """Alarm monitor for the system test that stops after a fixed number of
+    alarm requests and never sends emails."""
+
+    def __init__(
+        self,
+        polling_interval: int,
+        blaulichtsms_controller: BlaulichtSmsController,
+        hdmi_cec_controller: AbstractCecController,
+        browser_controller: ChromiumBrowserController,
+        alarm_requests_count: int,
+    ) -> None:
+        """Initializes the alarm monitor without email notifications.
+
+        :param polling_interval: Seconds between two alarm checks
+        :param blaulichtsms_controller: Requests the alarms
+        :param hdmi_cec_controller: Controls the HDMI device
+        :param browser_controller: Controls the browser showing the dashboard
+        :param alarm_requests_count: The number of alarm checks before stopping
+        """
+        super().__init__(
+            polling_interval,
+            False,
+            False,
+            blaulichtsms_controller,
+            hdmi_cec_controller,
+            browser_controller,
+            None,
+        )
         self._run_count = 0
         self._alarm_requests_count = alarm_requests_count
 
-    def _run_helper(self):
+    def _run_helper(self) -> None:
         """The main loop of the application.
         Reschedules itself to run every :_polling_interval: seconds for :_alarm_requests_count: times.
 

@@ -3,21 +3,29 @@ import json
 import re
 import stat
 import sys
+from collections.abc import Callable
 from getpass import getpass
-from os import getuid, chown, chmod
+from os import chmod, chown, getuid
 from os.path import isfile
-from pwd import getpwuid, getpwnam
+from pwd import getpwnam, getpwuid
 
 import yaml
 
 from blaulichtsmscontroller import BlaulichtSmsController
-from hdmiceccontroller import CecMode, CecLogging
+from hdmiceccontroller import CecLogging, CecMode
 from sendmail import MailSender
 
 
 class AlarmMonitorConfigurator:
+    """Interactive command line wizard that configures the alarm monitor.
 
-    def __init__(self):
+    Asks the user for the blaulichtSMS credentials, the alarm monitor settings and the
+    email notification settings, validates the input and writes ``config.ini``,
+    ``logging_config.yaml`` and ``alarmmonitor.service``.
+    """
+
+    def __init__(self) -> None:
+        """Initializes all settings with their defaults."""
         self.blaulichtsms_customer_id = ""
         self.blaulichtsms_username = ""
         self.blaulichtsms_password = ""
@@ -28,7 +36,7 @@ class AlarmMonitorConfigurator:
 
         self.gmail_username = ""
         self.gmail_password = ""
-        self.recipients = []
+        self.recipients: list[str] = []
         self.send_errors = False
         self.send_starts = False
         self.send_log = False
@@ -41,158 +49,217 @@ class AlarmMonitorConfigurator:
 
         self.polling_interval = "30"
 
-    def _get_input_with_validation(self, prompt, invalid_prompt, validation_func):
+    def _get_input_with_validation(
+        self, prompt: str, invalid_prompt: str, validation_func: Callable[[str], bool]
+    ) -> str:
+        """Reads a line from stdin until it passes the given validation.
+
+        :param prompt: The text printed before the first input
+        :param invalid_prompt: The warning printed after each invalid input
+        :param validation_func: Returns True if the input is valid
+        :return: The first valid input
+        """
         print(prompt)
         user_input = input()
         while not validation_func(user_input):
-            print("")
+            print()
             self._print_warning(invalid_prompt)
             user_input = input()
         return user_input
 
-    def _get_password_input(self, prompt, retype_prompt="Retype password:"):
+    def _get_password_input(self, prompt: str, retype_prompt: str = "Retype password:") -> str:
+        """Reads a password twice without echo until both inputs match.
+
+        :param prompt: The text shown for the first input
+        :param retype_prompt: The text shown for the confirmation input
+        :return: The confirmed password
+        """
         while True:
             password = getpass(prompt=prompt + "\n")
-            print("")
+            print()
             retyped_pwd = getpass(prompt=retype_prompt + "\n")
             if password == retyped_pwd:
                 return password
             else:
-                print("")
+                print()
                 self._print_warning("The entered passwords did not match.")
 
-    def _is_yes_input(self, prompt):
-        user_input = self._get_input_with_validation(prompt + "[yes|no]",
-                                                     "Please answer with either 'yes' or 'no'",
-                                                     self._is_yes_no)
+    def _is_yes_input(self, prompt: str) -> bool:
+        """Asks a yes/no question until the user gives a valid answer.
+
+        :param prompt: The question to ask
+        :return: True if the user answered "yes" or "y", False otherwise
+        """
+        user_input = self._get_input_with_validation(
+            prompt + "[yes|no]", "Please answer with either 'yes' or 'no'", self._is_yes_no
+        )
         return user_input == "yes" or user_input == "y"
 
-    def _configure_blaulichtsms_account(self):
+    def _configure_blaulichtsms_account(self) -> None:
+        """Asks for the blaulichtSMS credentials until a login succeeds,
+        then asks whether infos should be shown."""
         while True:
             self._configure_blaulichtsms_customer_id()
-            print("")
+            print()
             self._configure_blaulichtsms_username()
-            print("")
+            print()
             self._configure_blaulichtsms_password()
-            print("")
+            print()
             if not self._are_valid_blaulichtsms_credentials():
                 self._print_warning("Unable to connect with the given credentials.")
             else:
                 break
         self._configure_blaulichtsms_show_infos()
-        print("")
+        print()
 
-    def _configure_blaulichtsms_customer_id(self):
+    def _configure_blaulichtsms_customer_id(self) -> None:
+        """Asks for the 6 digit blaulichtSMS customer id."""
         self.blaulichtsms_customer_id = self._get_input_with_validation(
             "Please enter your blaulichtSMS customer id:",
             "Please enter a valid 6 digit blaulichtSMS customer id:",
-            self._is_valid_blaulichtsms_customer_id)
+            self._is_valid_blaulichtsms_customer_id,
+        )
 
-    def _configure_blaulichtsms_username(self):
+    def _configure_blaulichtsms_username(self) -> None:
+        """Asks for the blaulichtSMS Einsatzmonitor username."""
         print("Please enter your blaulichtSMS Einsatzmonitor username:")
         self.blaulichtsms_username = input()
 
-    def _configure_blaulichtsms_password(self):
+    def _configure_blaulichtsms_password(self) -> None:
+        """Asks for the blaulichtSMS Einsatzmonitor password."""
         self.blaulichtsms_password = self._get_password_input(
-            "Please enter your blaulichtSMS Einsatzmonitor password:")
+            "Please enter your blaulichtSMS Einsatzmonitor password:"
+        )
 
-    def _configure_blaulichtsms_show_infos(self):
+    def _configure_blaulichtsms_show_infos(self) -> None:
+        """Asks whether blaulichtSMS infos should be treated like alarms."""
         self.blaulichtsms_show_infos = self._is_yes_input(
-            "Do you want to show infos in addition to alarms?")
+            "Do you want to show infos in addition to alarms?"
+        )
 
-    def _configure_alarmmonitor(self):
+    def _configure_alarmmonitor(self) -> None:
+        """Asks for the alarm monitor settings: HDMI on time and the run user."""
         self._configure_hdmi_cec_device_on_time()
-        print("")
+        print()
         self._configure_run_user()
 
-    def _configure_hdmi_cec_device_on_time(self):
-        prompt = "Please enter the seconds the HDMI device" + \
-            " should be on after receiving an alarm:"
+    def _configure_hdmi_cec_device_on_time(self) -> None:
+        """Asks how many seconds the HDMI device stays on after an alarm."""
+        prompt = (
+            "Please enter the seconds the HDMI device" + " should be on after receiving an alarm:"
+        )
 
         self.hdmi_cec_device_on_time = self._get_input_with_validation(
-            prompt, "Please enter a positive integer value:", self._is_positive_int)
+            prompt, "Please enter a positive integer value:", self._is_positive_int
+        )
 
-    def _configure_run_user(self):
+    def _configure_run_user(self) -> None:
+        """Asks for the Linux user that runs the service.
+
+        An empty input selects the current user.
+        """
         while True:
-            print("Please enter the Linux user's name under whom" +
-                  " the application should run:\n" +
-                  "(If you are unsure skip this step to use the current user)")
+            print(
+                "Please enter the Linux user's name under whom"
+                + " the application should run:\n"
+                + "(If you are unsure skip this step to use the current user)"
+            )
             run_user = input()
             if not run_user:
                 current_uid = getuid()
                 current_username = getpwuid(current_uid).pw_name
                 self.run_user = current_username
-                print("")
+                print()
                 break
             elif self._is_valid_system_user(run_user):
                 self.run_user = run_user
                 break
             else:
-                print("")
+                print()
                 self._print_warning("Please enter a valid username for the system.")
 
-    def _configure_gmail(self):
-        email_notifications = \
-            self._is_yes_input("Do you want to receive email notifications?")
+    def _configure_gmail(self) -> None:
+        """Asks whether email notifications are wanted and, if so, for the
+        account credentials, the recipients and the kinds of mails to send."""
+        email_notifications = self._is_yes_input("Do you want to receive email notifications?")
         if email_notifications:
             while True:
-                print("")
+                print()
                 self._configure_gmail_username()
-                print("")
+                print()
                 self._configure_gmail_password()
                 if self._are_valid_gmail_credentials():
                     break
                 else:
-                    print("")
+                    print()
                     self._print_warning("Unable to connect to Gmail with this credentials.")
-            print("")
+            print()
             self._configure_recipients()
-            print("")
-            self.send_errors = \
-                self._is_yes_input("Do you want to send emails about errors?")
-            print("")
+            print()
+            self.send_errors = self._is_yes_input("Do you want to send emails about errors?")
+            print()
             self.send_starts = self._is_yes_input(
-                "Do you want to send emails about application starts?")
-            print("")
+                "Do you want to send emails about application starts?"
+            )
+            print()
             self.send_log = self._is_yes_input("Do you want to send the log of the day via email?")
 
-    def _configure_gmail_username(self):
+    def _configure_gmail_username(self) -> None:
+        """Asks for the email address of the sending account."""
         print("A Gmail account is required to send email notifications.")
         self.gmail_username = self._get_input_with_validation(
-            "Please enter the Gmail account's username:", "Please insert a valid Gmail address:",
-            self._is_valid_gmail)
+            "Please enter the Gmail account's username:",
+            "Please insert a valid Gmail address:",
+            self._is_valid_gmail,
+        )
 
-    def _configure_gmail_password(self):
+    def _configure_gmail_password(self) -> None:
+        """Asks for the password of the sending account."""
         self.gmail_password = self._get_password_input(
-            "Please enter the Gmail account's password:")
+            "Please enter the Gmail account's password:"
+        )
 
-    def _configure_recipients(self):
+    def _configure_recipients(self) -> None:
+        """Asks for a comma separated list of recipients until all addresses are valid."""
         finished = False
-        recipients = None
+        recipients: list[str] = []
         while not finished:
             print("Please enter a comma separated list" + " of log recipients email addresses:")
-            recipients = input()
-            recipients = recipients.split(",")
+            recipients = input().split(",")
             finished = True
             for recipient in recipients:
                 recipient = recipient.strip()
                 if not self._is_valid_email(recipient):
-                    self._print_warning("\n'{}' is not a valid email address".format(recipient))
+                    self._print_warning(f"\n'{recipient}' is not a valid email address")
                     finished = False
         self.recipients = recipients
 
     @staticmethod
-    def _is_valid_blaulichtsms_customer_id(customer_id):
-        return re.match("^[0-9]{6}$", customer_id)
+    def _is_valid_blaulichtsms_customer_id(customer_id: str) -> bool:
+        """Checks if the customer id consists of exactly 6 digits.
 
-    def _are_valid_blaulichtsms_credentials(self):
-        blaulichtsms_controller = BlaulichtSmsController(self.blaulichtsms_customer_id,
-                                                         self.blaulichtsms_username,
-                                                         self.blaulichtsms_password)
+        :param customer_id: The customer id to check
+        :return: True if the customer id is valid, False otherwise
+        """
+        return re.match("^[0-9]{6}$", customer_id) is not None
+
+    def _are_valid_blaulichtsms_credentials(self) -> bool:
+        """Tries to log in to the blaulichtSMS Dashboard API with the entered credentials.
+
+        :return: True if a session could be created, False otherwise
+        """
+        blaulichtsms_controller = BlaulichtSmsController(
+            self.blaulichtsms_customer_id, self.blaulichtsms_username, self.blaulichtsms_password
+        )
         return blaulichtsms_controller.get_session() is not None
 
     @staticmethod
-    def _is_positive_int(integer_string):
+    def _is_positive_int(integer_string: str) -> bool:
+        """Checks if the string is an integer greater than zero.
+
+        :param integer_string: The string to check
+        :return: True if the string is a positive integer, False otherwise
+        """
         try:
             integer = int(integer_string)
             return integer > 0
@@ -200,7 +267,12 @@ class AlarmMonitorConfigurator:
             return False
 
     @staticmethod
-    def _is_valid_system_user(username):
+    def _is_valid_system_user(username: str) -> bool:
+        """Checks if a user with this name exists on the system.
+
+        :param username: The user name to check
+        :return: True if the user exists, False otherwise
+        """
         try:
             getpwnam(username)
             return True
@@ -208,32 +280,56 @@ class AlarmMonitorConfigurator:
             return False
 
     @staticmethod
-    def _is_yes_no(user_input):
-        return user_input == "yes" or user_input == "y" \
-               or user_input == "no" or user_input == "n"
+    def _is_yes_no(user_input: str) -> bool:
+        """Checks if the input is one of "yes", "y", "no" or "n".
+
+        :param user_input: The input to check
+        :return: True if the input is a valid answer, False otherwise
+        """
+        return user_input == "yes" or user_input == "y" or user_input == "no" or user_input == "n"
 
     @staticmethod
-    def _is_valid_gmail(email):
+    def _is_valid_gmail(email: str) -> bool:
+        """Checks if the input is a valid address for the sending account.
+
+        :param email: The email address to check
+        :return: True if the address is valid, False otherwise
+        """
         # we allow other emails besides Gmail as you can use GSuite for Non-Profits
         return AlarmMonitorConfigurator._is_valid_email(email)
 
-    def _are_valid_gmail_credentials(self):
+    def _are_valid_gmail_credentials(self) -> bool:
+        """Tries to log in to the SMTP server with the entered credentials.
+
+        :return: True if the login succeeded, False otherwise
+        """
         config = configparser.ConfigParser()
         config.read("config.ini")
-        mail_sender = MailSender(self.smtp_server, self.smtp_port, self.gmail_username,
-                                 self.gmail_password)
+        mail_sender = MailSender(
+            self.smtp_server, self.smtp_port, self.gmail_username, self.gmail_password
+        )
         return mail_sender.get_connection() is not None
 
     @staticmethod
-    def _is_valid_email(email):
+    def _is_valid_email(email: str) -> bool:
+        """Checks if the input looks like an email address.
+
+        :param email: The email address to check
+        :return: True if the address is valid, False otherwise
+        """
         return re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email) is not None
 
-    def _write(self):
+    def _write(self) -> None:
+        """Writes all configured settings to the config files."""
         self._write_config_ini()
         self._write_send_log()
         self._write_systemd_service()
 
-    def _write_config_ini(self):
+    def _write_config_ini(self) -> None:
+        """Writes the settings to ``config.ini``.
+
+        Settings of an existing file that are not handled by the configurator are kept.
+        """
         if isfile("config.ini"):
             config = configparser.ConfigParser()
             config.read("config.ini")
@@ -248,26 +344,43 @@ class AlarmMonitorConfigurator:
             config.write(config_file)
         self._set_config_file_permissions(config_file_name)
 
-    def _set_config_file_permissions(self, config_file_name):
+    def _set_config_file_permissions(self, config_file_name: str) -> None:
+        """Restricts the config file to the owner and the run user's group,
+        as it contains passwords.
+
+        :param config_file_name: The path of the config file
+        """
         gid = getpwnam(self.run_user).pw_gid
         chown(config_file_name, getuid(), gid)
         chmod(config_file_name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP)
 
     @staticmethod
-    def _get_config_scaffold():
+    def _get_config_scaffold() -> configparser.ConfigParser:
+        """Creates an empty config with all sections the configurator writes.
+
+        :return: The empty config
+        """
         config = configparser.ConfigParser()
         config["Email"] = {}
         config["blaulichtSMS Einsatzmonitor"] = {}
         config["Alarmmonitor"] = {}
         return config
 
-    def _write_blaulichtsms_section(self, config):
+    def _write_blaulichtsms_section(self, config: configparser.ConfigParser) -> None:
+        """Sets the blaulichtSMS settings in the config.
+
+        :param config: The config to update
+        """
         config["blaulichtSMS Einsatzmonitor"]["customer_id"] = self.blaulichtsms_customer_id
         config["blaulichtSMS Einsatzmonitor"]["username"] = self.blaulichtsms_username
         config["blaulichtSMS Einsatzmonitor"]["password"] = self.blaulichtsms_password
         config["blaulichtSMS Einsatzmonitor"]["show_infos"] = str(self.blaulichtsms_show_infos)
 
-    def _write_alarmmonitor_section(self, config):
+    def _write_alarmmonitor_section(self, config: configparser.ConfigParser) -> None:
+        """Sets the alarm monitor settings in the config.
+
+        :param config: The config to update
+        """
         config["Alarmmonitor"]["hdmi_cec_device_on_time"] = self.hdmi_cec_device_on_time
         config["Alarmmonitor"]["polling_interval"] = self.polling_interval
         config["Alarmmonitor"]["run_user"] = self.run_user
@@ -277,7 +390,11 @@ class AlarmMonitorConfigurator:
         config["Alarmmonitor"]["cec_logging"] = str(self.cec_logging.value)
         config["Alarmmonitor"]["cec_device_id"] = "1"
 
-    def _write_email_section(self, config):
+    def _write_email_section(self, config: configparser.ConfigParser) -> None:
+        """Sets the email settings in the config.
+
+        :param config: The config to update
+        """
         config["Email"]["username"] = self.gmail_username
         config["Email"]["password"] = self.gmail_password
         config["Email"]["smtp_server"] = self.smtp_server
@@ -286,14 +403,16 @@ class AlarmMonitorConfigurator:
         config["Email"]["to_addrs"] = json.dumps(self.recipients)
         config["Email"]["subject"] = self.subject
 
-    def _write_send_log(self):
-        with open("logging_config.yaml", "r") as logging_config:
+    def _write_send_log(self) -> None:
+        """Sets whether the daily log is sent via email in ``logging_config.yaml``."""
+        with open("logging_config.yaml") as logging_config:
             config = yaml.safe_load(logging_config)
         config["handlers"]["file"]["send_log"] = self.send_log
         with open("logging_config.yaml", "w") as file:
             yaml.dump(config, file, default_flow_style=False)
 
-    def _write_systemd_service(self):
+    def _write_systemd_service(self) -> None:
+        """Sets the run user in ``alarmmonitor.service``."""
         with open("alarmmonitor.service") as service_file:
             service_file_content = service_file.read()
             service_file_content = re.sub("User=.*", "User=" + self.run_user, service_file_content)
@@ -301,31 +420,47 @@ class AlarmMonitorConfigurator:
             service_file.write(service_file_content)
 
     @staticmethod
-    def _print_warning(msg):
+    def _print_warning(msg: str) -> None:
+        """Prints the message in yellow to stdout.
+
+        :param msg: The message to print
+        """
         ansi_warn = "\033[93m"
         ansi_end = "\033[0m"
         print(ansi_warn + msg + ansi_end)
 
     @staticmethod
-    def _print_error(msg):
+    def _print_error(msg: str) -> None:
+        """Prints the message in red to stderr.
+
+        :param msg: The message to print
+        """
         ansi_error = "\033[91m"
         ansi_end = "\033[0m"
         print(ansi_error + msg + ansi_end, file=sys.stderr)
 
     @staticmethod
-    def _print_success(msg):
+    def _print_success(msg: str) -> None:
+        """Prints the message in green to stdout.
+
+        :param msg: The message to print
+        """
         ansi_success = "\033[92m"
         ansi_end = "\033[0m"
         print(ansi_success + msg + ansi_end)
 
-    def configure(self):
+    def configure(self) -> None:
+        """Runs the whole configuration wizard and writes the config files.
+
+        A keyboard interrupt aborts the wizard.
+        """
         try:
             self._configure_blaulichtsms_account()
             self._configure_alarmmonitor()
             self._configure_gmail()
             self._write()
 
-            print("")
+            print()
             self._print_success("Configuration successful.")
             print("There are additional settings" + " to configure in the config files.")
         except KeyboardInterrupt:

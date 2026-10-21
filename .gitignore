@@ -2,7 +2,6 @@ config.ini
 log/
 .remote-sync.json
 
-
 # Created by https://www.gitignore.io/api/flask,python,pycharm+all
 # Edit at https://www.gitignore.io/?templates=flask,python,pycharm+all
 
@@ -261,3 +260,5 @@ modules.xml
 .venv/
 
 # End of https://www.gitignore.io/api/flask,python,pycharm+all
+
+SETUP.md

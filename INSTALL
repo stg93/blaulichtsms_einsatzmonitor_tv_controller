@@ -11,69 +11,119 @@ fi
 # Check dependencies
 requiredAptDependencies=( "cec-utils" )
 missingAptDependencies=()
+aptUpdated=0
+
+aptInstall() {
+	if [ $aptUpdated -eq 0 ]
+	then
+		apt-get -q update
+		aptUpdated=1
+	fi
+	apt-get -y -q install "$@"
+}
 
 echo "Checking apt dependencies..."
 for elem in "${requiredAptDependencies[@]}"
 do
-	dpkg -s $elem &> /dev/null
-	if [ $? -ne 0 ]
+	if ! dpkg -s "$elem" &> /dev/null
 	then
-		missingAptDependencies=("${missingAptDependencies[@]}" "$elem")
+		missingAptDependencies+=("$elem")
 	fi
 done
 
 if [ ${#missingAptDependencies[@]} -gt 0 ]
 then
-	# printf "Please install missing apt packages via\n"
-	# printf "\t'sudo apt install"
-	for elem in "${missingAptDependencies[@]}"
-	do
-		printf "trying to install $elem\n"
-		apt -y -q install $elem
-		# printf " $elem"
-	done
-	printf "'\n"
+	echo "Installing missing apt packages: ${missingAptDependencies[*]}"
+	if ! aptInstall "${missingAptDependencies[@]}"
+	then
+		echo "Failed to install apt packages: ${missingAptDependencies[*]}" 1>&2
+		exit 1
+	fi
 else
 	echo "All apt dependencies are met"
 fi
 echo ""
 
-echo "Checking pip dependencies..."
-requiredPipDependencies=( "requests" "cec" "yaml" )
-missingPipDependencies=()
-
-for elem in "${requiredPipDependencies[@]}"
-do
-	python3 -c "import $elem" &> /dev/null
-	if [ $? -ne 0 ]
-	then
-    if [ "$elem" = "yaml" ]
-    then
-      missingPipDependencies=("${missingPipDependencies[@]}" "pyyaml")
-    else
-      missingPipDependencies=("${missingPipDependencies[@]}" "$elem")
-    fi
-	fi
-done
-
-if [ ${#missingPipDependencies[@]} -gt 0 ]
+echo "Checking chromium..."
+# Raspberry Pi OS ships chromium-browser, Debian and newer Raspberry Pi OS ship chromium
+if command -v chromium-browser &> /dev/null || command -v chromium &> /dev/null
 then
-	# printf "Please install missing pip packages via\n"
-	# printf "\t'pip3 install --system"
-	for elem in "${missingPipDependencies[@]}"
-	do
-		# printf " $elem"
-		printf "Insalling $elem\n"
-		pip3 install --system $elem
-	done
-	# printf "'\n"
-  printf "\n"
-  printf "Note that a user has to be in the group 'staff' to install Python packages globally.\n"
-  printf "To add a user to the 'staff' group execute 'sudo adduser <username> staff'.\n"
+	echo "Chromium is installed"
 else
-	echo "All pip dependencies are met"
+	echo "Installing chromium"
+	if ! { aptInstall chromium-browser || aptInstall chromium; }
+	then
+		echo "Failed to install chromium" 1>&2
+		exit 1
+	fi
+	if ! { command -v chromium-browser &> /dev/null || command -v chromium &> /dev/null; }
+	then
+		echo "Chromium was installed but neither chromium-browser nor chromium is in PATH" 1>&2
+		exit 1
+	fi
 fi
 echo ""
+
+echo "Checking python dependencies..."
+# python module:apt package:pip package
+requiredPythonDependencies=( "requests:python3-requests:requests" "yaml:python3-yaml:pyyaml" )
+failedPythonDependencies=()
+
+for elem in "${requiredPythonDependencies[@]}"
+do
+	IFS=: read -r module aptPackage pipPackage <<< "$elem"
+	if python3 -c "import $module" &> /dev/null
+	then
+		continue
+	fi
+
+	echo "Installing python module $module via apt ($aptPackage)"
+	if aptInstall "$aptPackage" && python3 -c "import $module" &> /dev/null
+	then
+		continue
+	fi
+
+	echo "apt installation of $aptPackage failed, trying pip ($pipPackage)"
+	if pip3 install "$pipPackage" || pip3 install --break-system-packages "$pipPackage"
+	then
+		if python3 -c "import $module" &> /dev/null
+		then
+			continue
+		fi
+	fi
+
+	failedPythonDependencies+=("$module")
+done
+
+if [ ${#failedPythonDependencies[@]} -gt 0 ]
+then
+	echo "Could not install python modules: ${failedPythonDependencies[*]}" 1>&2
+	exit 1
+fi
+echo "All python dependencies are met"
+echo ""
+
+# python-cec by trainman419 is only needed for cec_mode = 2 (cec_mode = 1 uses cec-client).
+# It is only available via pip; the apt package python3-cec contains the incompatible
+# libcec SWIG bindings.
+if grep -Eq "^[[:space:]]*cec_mode[[:space:]]*=[[:space:]]*2" config.ini 2> /dev/null
+then
+	echo "Checking python-cec (cec_mode = 2)..."
+	if python3 -c "import cec; cec.init" &> /dev/null
+	then
+		echo "python-cec is installed"
+	else
+		echo "Installing python-cec via pip"
+		if ! { aptInstall libcec-dev build-essential python3-dev \
+			&& { pip3 install cec || pip3 install --break-system-packages cec; } \
+			&& python3 -c "import cec; cec.init" &> /dev/null; }
+		then
+			echo "Could not install python-cec. Install it manually or set cec_mode = 1 in config.ini" 1>&2
+			exit 1
+		fi
+	fi
+	echo ""
+fi
 
 # if [ ${#missingAptDependencies[@]} -gt 0 ] || [ ${#missingPipDependencies[@]} -gt 0 ]
 # then
@@ -84,15 +134,14 @@ echo ""
 # Starting installation
 echo "Starting installation..."
 echo "Setting up systemd service..."
-sed -i "s|WorkingDirectory=.*|WorkingDirectory=$(pwd)|g" alarmmonitor.service \
-&& ln -s "$(pwd)"/alarmmonitor.service /etc/systemd/system/alarmmonitor.service \
-&& systemctl enable alarmmonitor \
-&& systemctl start alarmmonitor
-echo ""
-
-
-if [ $? -ne 0 ]; then
-    echo "Errors occurred during installation" > /dev/stderr
-    exit 1
+if ! { sed -i "s|WorkingDirectory=.*|WorkingDirectory=$(pwd)|g" alarmmonitor.service \
+	&& ln -sf "$(pwd)"/alarmmonitor.service /etc/systemd/system/alarmmonitor.service \
+	&& systemctl daemon-reload \
+	&& systemctl enable alarmmonitor \
+	&& systemctl restart alarmmonitor; }
+then
+	echo "Errors occurred during installation" 1>&2
+	exit 1
 fi
+echo ""
 echo "Installation successful"

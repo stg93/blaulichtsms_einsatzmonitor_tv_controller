@@ -2,43 +2,50 @@
 
 ## Beschreibung
 
-Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/). Folgende Features sind enthalten:
+Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/).
+Folgende Features sind enthalten:
 
-- Anzeigen des blaulichtSMS Einsatzmonitor Dashboards auf einem HDMI CEC fähigen Gerät
-- Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms oder wahlweise auch bei neuen Informationen und Ausschalten des Gerätes nach einer vorgegebenen Zeit
+- Anzeigen des blaulichtSMS Einsatzmonitor Dashboards im Chromium Kiosk Modus auf einem HDMI CEC fähigen Gerät
+- Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms oder wahlweise auch bei neuen Informationen
+  und Ausschalten des Gerätes nach einer vorgegebenen Zeit
 - Senden des Logs eines Tages per Mail
 - Senden einer Mail beim Auftreten eines Fehlers bzw. bei dessen Behebung
 
 Für das Versenden von Mails ist ein Gmail Account erforderlich.
 
-Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die [Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
+Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die
+[Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
 
-Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspbian Stretch Desktop](https://www.raspberrypi.org/downloads/raspbian/). Für andere Systeme muss der Source Code angepasst werden.
+Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspberry Pi OS Desktop](https://www.raspberrypi.com/software/).
+Für andere Systeme muss der Source Code angepasst werden.
 
 ## Abhängigkeiten
 
+Benötigt wird **Python 3.11** oder neuer, das ist ab Raspberry Pi OS Bookworm enthalten.
+Ältere Versionen wie Raspbian Stretch oder Raspberry Pi OS Bullseye werden nicht mehr unterstützt.
+
 Folgende Bibliotheken werden benötigt:
 
-* APT Packete:
-	* cec-utils
-	* python3-cec
-* Pip Packete:
-	* pyyaml
-	* cec
+- APT Packete:
+  - cec-utils
+  - chromium-browser bzw. chromium (je nach Distribution)
+  - python3-requests
+  - python3-yaml
+- Optional, nur für `cec_mode = 2`:
+  - [python-cec](https://github.com/trainman419/python-cec) via pip
+    (`pip3 install cec`, benötigt `libcec-dev build-essential python3-dev`)
 
-Zum Installieren der Äbhängigkeiten folgenden Befehle ausführen:
+Das APT Packet _python3-cec_ enthält die SWIG Bindings der libCEC und ist **nicht** kompatibel mit _python-cec_.
+Es wird nicht benötigt.
+
+Das `INSTALL` Script installiert fehlende Abhängigkeiten automatisch. Manuell:
 
 ```bash
-sudo apt install cec-utils python3-cec python3-yaml
+sudo apt install cec-utils chromium-browser python3-requests python3-yaml
+# nur für cec_mode = 2
+sudo apt install libcec-dev build-essential python3-dev
+sudo pip3 install cec  # ggf. mit --break-system-packages
 ```
-
-Um Python Packete systemweit mit `pip3 install --system` installieren zu können muss der User der die Installation ausführt in der Gruppe _staff_ sein. Ein User kann zu dieser Gruppe mit:
-
-```bash
-sudo adduser <username> staff
-```
-
-hinzugefügt werden.
 
 ## Installation
 
@@ -67,11 +74,13 @@ die Anwendung konfiguriert werden. Bei der Konfiguration werden folgende Informa
 - Ob blaulichtSMS Informationen auch beachtet werden sollen
 - Dauer nachdem das HDMI CEC Gerät nach einem Alarm wieder ausgeschaltet werden soll
 - Der System Username unter welchem die Applikation ausgeführt werden soll
-- Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht, Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
+- Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht,
+  Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
   - Die Gmail Login Daten
   - Die Empfänger des Logs
 
-Nachdem die Konfiguration abgeschlossen ist können im File `config.ini` fortgeschrittenere Einstellungen vorgenommen werden. Das Versenden des Logs kann mit dem Attribut `send_log` im File `logging_config.yaml` eingestellt werden.
+Nachdem die Konfiguration abgeschlossen ist können im File `config.ini` fortgeschrittenere Einstellungen vorgenommen werden.
+Das Versenden des Logs kann mit dem Attribut `send_log` im File `logging_config.yaml` eingestellt werden.
 
 Anschließend erfolgt die Installation via
 
@@ -79,7 +88,8 @@ Anschließend erfolgt die Installation via
 sudo ./INSTALL
 ```
 
-Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet. Es ist daher sinnvoll den Code in sein finales Verzeichnis zu verschieben bevor die Installation erfolgt.
+Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet.
+Es ist daher sinnvoll den Code in sein finales Verzeichnis zu verschieben bevor die Installation erfolgt.
 
 ## Deinstalltion
 
@@ -127,9 +137,31 @@ python3 main.py
 
 Zusätzlich zum Versenden des Logs einmal pro Tag per Mail, findet man im Verzeichnis `./log`die Logfiles der letzten 7 Tage.
 
+## Entwicklung
+
+Für die Entwicklung verwaltet [uv](https://docs.astral.sh/uv/) die Python Abhängigkeiten.
+Sie sind in `pyproject.toml` definiert und in `uv.lock` mit exakten Versionen festgehalten.
+Die Installation auf dem Raspberry Pi verwendet weiterhin die APT Packete (siehe oben).
+
+```bash
+uv sync                # Abhängigkeiten inkl. pytest, ruff und flask installieren
+uv sync --extra cec    # zusätzlich python-cec für cec_mode = 2 (benötigt libcec-dev build-essential python3-dev)
+uv run pytest          # Unit Tests ausführen
+uv run ruff check .    # Linter
+uv run ruff format .   # Formatierung
+uv lock --upgrade      # alle Abhängigkeiten aktualisieren
+```
+
+Dependabot aktualisiert `uv.lock` wöchentlich per Pull Request.
+Die Konfiguration von ruff und pytest liegt ebenfalls in `pyproject.toml`.
+
+In VS Code verwendet Pylance über `.vscode/settings.json` automatisch das `.venv` des Projekts.
+
 ## Test
 
-Das Packet `tests` enthält einen Systemtest.
+Die Unit Tests in `tests/unit` laufen ohne Hardware und werden mit `uv run pytest` gestartet.
+
+Das Packet `tests` enthält zusätzlich einen Systemtest.
 Dieser Test simuliert mit Hilfe eines Mocks der blaulichtSMS Dashboard API eine Alarmierung.
 
 Konkret sollte sich der Test folgendermaßen verhalten:
@@ -142,29 +174,28 @@ Konkret sollte sich der Test folgendermaßen verhalten:
 - Weitere Abfragen die keine aktiven Alarme zurückgeben.
 - Anzeigen einer Zusammenfassung des Tests mit der Anzahl der Fehler und Warnungen und dem Pfad des abgespeicherten Logs.
 
-Zum Ausführen des Systemtests muss die Environment Variable **PYTHONPATH** das Root Verzeichnis der Applikation enthalten.
-Diese kann mit `export PYTHONPATH=<absoluter_pfad_applikation_root>` gesetzt werden.
-
-Danach kann mit
+Der Systemtest benötigt eine gültige `config.ini`, einen angeschlossenen Bildschirm
+und _flask_ für die Mock API (in der dev Gruppe von uv enthalten).
+Er wird aus dem Root Verzeichnis der Applikation gestartet:
 
 ```bash
-python3 tests/systemtest.py
+PYTHONPATH=. uv run python tests/systemtest.py
 ```
-
-der Systemtest gestartet werden. Die Ausführung des Tests kann nur vom Root Verzeichnis der Applikation gestartet werden.
 
 ## HDMI Geräte Steuerung
 
 Die Steuerung eines HDMI Gerätes erfolgt mittels HDMI CEC. Für diese Steuerung sind zwei Modi implementiert.
 Eine Implemetierung verwendet [Pulse-Eight libCEC](https://github.com/Pulse-Eight/libcec) direkt,
 die andere verwendet die Python bindings der libCEC von [trainmain419](https://github.com/trainman419/python-cec).
-Wird _python-cec_ via _pip_ installiert handelt es sich um Version 0.2.6.
-Bei dieser Version schlägt manchmal die Initialisierung fehl.
-Daher kann man auf die direkte Verwendung der _libCEC_ umstellen.
+Bei _python-cec_ 0.2.6 schlägt manchmal die Initialisierung fehl.
+Daher ist die direkte Verwendung der _libCEC_ (`cec_mode = 1`) der Standard.
 
 Welche Implementierung verwendet wird kann in der `config.ini` festgelegt werden:
 
 ```python
+# CEC deaktiviert, der Monitor wird nicht gesteuert
+cec_mode = 0
+
 # libCEC
 cec_mode = 1
 
@@ -172,7 +203,7 @@ cec_mode = 1
 cec_mode = 2
 ```
 
-Installiert man _python-cec_ direkt vom source code, ist Version 0.2.7 aktuell.
+Via _pip_ wird aktuell Version 0.2.8 installiert.
 Ob das Initalisierungproblem darin behoben ist wurde nicht getestet.
 
 ### libCEC Shell Befehle
@@ -263,16 +294,16 @@ Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICEN
 
 Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gelistet.
 
-### Wartung im lokalen Netzwerk:
+### Wartung im lokalen Netzwerk
 
 - ssh Zugang
 - VNC Server
 
-### Wartung über das Internet:
+### Wartung über das Internet
 
 - ssh Zugang über [remot3.it](https://www.remot3.it/web/index.html) oder mittels Port Forwarding
 
-### "Fehlerfreie" Anzeige:
+### "Fehlerfreie" Anzeige
 
 - Installieren von _unclutter_ zum Ausblenden des Mauszeigers:
 
@@ -284,7 +315,8 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   Nach einem Neustart wird der Mauszeiger nach 5 Sekunden Inaktivität ausgeblendet.
 
 - Installieren von _xscreensaver_ zum Deaktivieren des Bildschirm schonens. Eine Beschreibung findet man auf [raspberrypi.org](https://www.raspberrypi.org/documentation/configuration/screensaver.md)
-- Bei Problemen mit der Erkennung des HDMI Gerätes aktivieren von HDMI Hotplug wie [hier](https://github.com/Pulse-Eight/libcec#raspberry-pi) beschrieben.
+- Bei Problemen mit der Erkennung des HDMI Gerätes aktivieren von HDMI Hotplug
+  wie [hier](https://github.com/Pulse-Eight/libcec#raspberry-pi) beschrieben.
 
 ### Sicherheit
 
@@ -296,9 +328,11 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 
   zum automatischen Installieren von Sicherheitsupdates.
 
-- Ändern des Standard-Benutzers, erlauben von SSH nur mit Schlüsseln, installieren einer Firewall und von fail2ban wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
+- Ändern des Standard-Benutzers, erlauben von SSH nur mit Schlüsseln, installieren einer Firewall und von fail2ban
+  wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
 
-  **Achtung:** Um auf Netzwerkgeräte zugreifen zu können muss ein User in der _netdev_ Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe _video_ sein.
+  **Achtung:** Um auf Netzwerkgeräte zugreifen zu können muss ein User in der _netdev_ Gruppe sein.
+  Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe _video_ sein.
 
 - Die Konfigurationsdateien und die Logdateien enthalten sensible Daten und sollten nur berechtigte User lesbar sein.
 
@@ -322,4 +356,6 @@ Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 
 ## Fragen und Probleme
 
-Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new). Da es sich um ein reines Hobbyprojekt handelt wird das Projekt nur sehr sporadisch gewartet und weiterentwickelt. Bitte um Verständnis dafür.
+Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new).
+Da es sich um ein reines Hobbyprojekt handelt wird das Projekt nur sehr sporadisch gewartet und weiterentwickelt.
+Bitte um Verständnis dafür.
