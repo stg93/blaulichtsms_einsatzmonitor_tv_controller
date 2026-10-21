@@ -2,18 +2,22 @@
 
 ## Beschreibung
 
-Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/). Folgende Features sind enthalten:
+Das Projekt ist eine Python 3 Anwendung des [blaulichtSMS Einsatzmonitor](https://blaulichtsms.net/einsatz-monitor/).
+Folgende Features sind enthalten:
 
 - Anzeigen des blaulichtSMS Einsatzmonitor Dashboards im Chromium Kiosk Modus auf einem HDMI CEC fähigen Gerät
-- Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms oder wahlweise auch bei neuen Informationen und Ausschalten des Gerätes nach einer vorgegebenen Zeit
+- Einschalten des HDMI CEC Gerätes beim Eintreffen eines neuen Alarms oder wahlweise auch bei neuen Informationen
+  und Ausschalten des Gerätes nach einer vorgegebenen Zeit
 - Senden des Logs eines Tages per Mail
 - Senden einer Mail beim Auftreten eines Fehlers bzw. bei dessen Behebung
 
 Für das Versenden von Mails ist ein Gmail Account erforderlich.
 
-Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die [Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
+Zur Kommunikation mit dem blaulichtSMS Einsatzmonitor wird die
+[Dashboard API](https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md) verwendet.
 
-Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspberry Pi OS Desktop](https://www.raspberrypi.com/software/). Für andere Systeme muss der Source Code angepasst werden.
+Die Applikation ist entwickelt für Raspberry Pi in Kombination mit [Raspberry Pi OS Desktop](https://www.raspberrypi.com/software/).
+Für andere Systeme muss der Source Code angepasst werden.
 
 ## Abhängigkeiten
 
@@ -22,15 +26,17 @@ Benötigt wird **Python 3.11** oder neuer, das ist ab Raspberry Pi OS Bookworm e
 
 Folgende Bibliotheken werden benötigt:
 
-* APT Packete:
-	* cec-utils
-	* chromium-browser bzw. chromium (je nach Distribution)
-	* python3-requests
-	* python3-yaml
-* Optional, nur für `cec_mode = 2`:
-	* [python-cec](https://github.com/trainman419/python-cec) via pip (`pip3 install cec`, benötigt `libcec-dev build-essential python3-dev`)
+- APT Packete:
+  - cec-utils
+  - chromium-browser bzw. chromium (je nach Distribution)
+  - python3-requests
+  - python3-yaml
+- Optional, nur für `cec_mode = 2`:
+  - [python-cec](https://github.com/trainman419/python-cec) via pip
+    (`pip3 install cec`, benötigt `libcec-dev build-essential python3-dev`)
 
-Das APT Packet _python3-cec_ enthält die SWIG Bindings der libCEC und ist **nicht** kompatibel mit _python-cec_. Es wird nicht benötigt.
+Das APT Packet _python3-cec_ enthält die SWIG Bindings der libCEC und ist **nicht** kompatibel mit _python-cec_.
+Es wird nicht benötigt.
 
 Das `INSTALL` Script installiert fehlende Abhängigkeiten automatisch. Manuell:
 
@@ -68,11 +74,13 @@ die Anwendung konfiguriert werden. Bei der Konfiguration werden folgende Informa
 - Ob blaulichtSMS Informationen auch beachtet werden sollen
 - Dauer nachdem das HDMI CEC Gerät nach einem Alarm wieder ausgeschaltet werden soll
 - Der System Username unter welchem die Applikation ausgeführt werden soll
-- Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht, Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
+- Ob das Versenden von Mail Benachrichtigungen (Log des Tages um Mitternacht,
+  Auftritt eines Fehlers und deren Behebung, Start der Applikation) erwünscht ist und falls ja
   - Die Gmail Login Daten
   - Die Empfänger des Logs
 
-Nachdem die Konfiguration abgeschlossen ist können im File `config.ini` fortgeschrittenere Einstellungen vorgenommen werden. Das Versenden des Logs kann mit dem Attribut `send_log` im File `logging_config.yaml` eingestellt werden.
+Nachdem die Konfiguration abgeschlossen ist können im File `config.ini` fortgeschrittenere Einstellungen vorgenommen werden.
+Das Versenden des Logs kann mit dem Attribut `send_log` im File `logging_config.yaml` eingestellt werden.
 
 Anschließend erfolgt die Installation via
 
@@ -80,7 +88,8 @@ Anschließend erfolgt die Installation via
 sudo ./INSTALL
 ```
 
-Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet. Es ist daher sinnvoll den Code in sein finales Verzeichnis zu verschieben bevor die Installation erfolgt.
+Der Source Code im aktuellen Verzeichnis wird für die Ausführung verwendet.
+Es ist daher sinnvoll den Code in sein finales Verzeichnis zu verschieben bevor die Installation erfolgt.
 
 ## Deinstalltion
 
@@ -285,16 +294,16 @@ Dieses Projekt ist unter der MIT License veröffentlicht. (siehe [LICENSE](LICEN
 
 Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gelistet.
 
-### Wartung im lokalen Netzwerk:
+### Wartung im lokalen Netzwerk
 
 - ssh Zugang
 - VNC Server
 
-### Wartung über das Internet:
+### Wartung über das Internet
 
 - ssh Zugang über [remot3.it](https://www.remot3.it/web/index.html) oder mittels Port Forwarding
 
-### "Fehlerfreie" Anzeige:
+### "Fehlerfreie" Anzeige
 
 - Installieren von _unclutter_ zum Ausblenden des Mauszeigers:
 
@@ -306,7 +315,8 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
   Nach einem Neustart wird der Mauszeiger nach 5 Sekunden Inaktivität ausgeblendet.
 
 - Installieren von _xscreensaver_ zum Deaktivieren des Bildschirm schonens. Eine Beschreibung findet man auf [raspberrypi.org](https://www.raspberrypi.org/documentation/configuration/screensaver.md)
-- Bei Problemen mit der Erkennung des HDMI Gerätes aktivieren von HDMI Hotplug wie [hier](https://github.com/Pulse-Eight/libcec#raspberry-pi) beschrieben.
+- Bei Problemen mit der Erkennung des HDMI Gerätes aktivieren von HDMI Hotplug
+  wie [hier](https://github.com/Pulse-Eight/libcec#raspberry-pi) beschrieben.
 
 ### Sicherheit
 
@@ -318,9 +328,11 @@ Zusätzlich zur Anwendung selbst sind hier noch weitere sinnvolle Maßnahmen gel
 
   zum automatischen Installieren von Sicherheitsupdates.
 
-- Ändern des Standard-Benutzers, erlauben von SSH nur mit Schlüsseln, installieren einer Firewall und von fail2ban wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
+- Ändern des Standard-Benutzers, erlauben von SSH nur mit Schlüsseln, installieren einer Firewall und von fail2ban
+  wie [hier](https://www.raspberrypi.org/documentation/configuration/security.md) beschrieben.
 
-  **Achtung:** Um auf Netzwerkgeräte zugreifen zu können muss ein User in der _netdev_ Gruppe sein. Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe _video_ sein.
+  **Achtung:** Um auf Netzwerkgeräte zugreifen zu können muss ein User in der _netdev_ Gruppe sein.
+  Um auf den HDMI Controller zugreifen zu können muss ein User in der Gruppe _video_ sein.
 
 - Die Konfigurationsdateien und die Logdateien enthalten sensible Daten und sollten nur berechtigte User lesbar sein.
 
@@ -344,4 +356,6 @@ Die Funktionalität der Anwendung ist mit folgenden Komponenten getestet:
 
 ## Fragen und Probleme
 
-Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new). Da es sich um ein reines Hobbyprojekt handelt wird das Projekt nur sehr sporadisch gewartet und weiterentwickelt. Bitte um Verständnis dafür.
+Für Fragen und Probleme (Bugs, Feature requests, ...) bitte ein [Issue erstellen](https://github.com/stg93/blaulichtsms_einsatzmonitor_tv_controller/issues/new).
+Da es sich um ein reines Hobbyprojekt handelt wird das Projekt nur sehr sporadisch gewartet und weiterentwickelt.
+Bitte um Verständnis dafür.
