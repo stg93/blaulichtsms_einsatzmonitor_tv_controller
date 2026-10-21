@@ -38,7 +38,7 @@ class ChromiumBrowserController:
                 "--disable-session-restore",
                 "--disable-session-crashed-bubble",
                 "--disable-infobars",
-                "--start-fullscreen",
+                "--kiosk",
                 "https://dashboard.blaulichtsms.net/#/login?token="
                 + self._session_id
             ],

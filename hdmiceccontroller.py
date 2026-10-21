@@ -14,6 +14,7 @@ except ImportError:
 
 
 class CecMode(IntEnum):
+    DISABLED = 0
     LIB_CEC = 1
     PYTHON_CEC = 2
 
@@ -74,6 +75,25 @@ class AbstractCecController(ABC):
     def _handle_hdmi_error_resolved(self):
         self._mail_sender.send_message("The HDMI issue of the AlarmMonitor is resolved.")
         self._is_hdmi_error = False
+
+
+class NoCecController(AbstractCecController):
+    """Does not control any HDMI CEC device, used if CEC is disabled"""
+
+    def _init_cec_connection(self):
+        self.logger.info("HDMI CEC is disabled")
+
+    def power_on(self):
+        pass
+
+    def standby(self):
+        pass
+
+    def activate_source(self):
+        pass
+
+    def is_on(self):
+        return False
 
 
 class PythonCecController(AbstractCecController):

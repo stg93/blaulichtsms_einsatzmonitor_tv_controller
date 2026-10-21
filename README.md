@@ -163,6 +163,9 @@ Daher kann man auf die direkte Verwendung der _libCEC_ umstellen.
 Welche Implementierung verwendet wird kann in der `config.ini` festgelegt werden:
 
 ```python
+# CEC deaktiviert, der Monitor wird nicht gesteuert
+cec_mode = 0
+
 # libCEC
 cec_mode = 1
 
