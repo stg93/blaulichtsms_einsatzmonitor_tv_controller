@@ -6,7 +6,11 @@ from enum import IntEnum
 from queue import Empty, Queue
 from threading import Thread
 
-import cec
+# python-cec (trainman419) is only required for CecMode.PYTHON_CEC
+try:
+    import cec
+except ImportError:
+    cec = None
 
 
 class CecMode(IntEnum):
@@ -79,6 +83,9 @@ class PythonCecController(AbstractCecController):
 
     def _init_cec_connection(self):
         self.logger.debug("Initializing HDMI CEC connection...")
+        if cec is None or not hasattr(cec, "init"):
+            raise RuntimeError("python-cec by trainman419 is required for cec_mode = 2. "
+                               "Install it via 'pip3 install cec' or use cec_mode = 1.")
         cec.init()
         self.hdmi_cec_device = cec.Device(cec.CECDEVICE_TV)
         self.standby()

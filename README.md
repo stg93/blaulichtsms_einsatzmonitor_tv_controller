@@ -21,24 +21,22 @@ Folgende Bibliotheken werden benötigt:
 
 * APT Packete:
 	* cec-utils
-	* python3-cec
-* Pip Packete:
-	* pyyaml
-	* cec
+	* chromium-browser bzw. chromium (je nach Distribution)
+	* python3-requests
+	* python3-yaml
+* Optional, nur für `cec_mode = 2`:
+	* [python-cec](https://github.com/trainman419/python-cec) via pip (`pip3 install cec`, benötigt `libcec-dev build-essential python3-dev`)
 
-Zum Installieren der Äbhängigkeiten folgenden Befehle ausführen:
+Das APT Packet _python3-cec_ enthält die SWIG Bindings der libCEC und ist **nicht** kompatibel mit _python-cec_. Es wird nicht benötigt.
 
-```bash
-sudo apt install cec-utils python3-cec python3-yaml
-```
-
-Um Python Packete systemweit mit `pip3 install --system` installieren zu können muss der User der die Installation ausführt in der Gruppe _staff_ sein. Ein User kann zu dieser Gruppe mit:
+Das `INSTALL` Script installiert fehlende Abhängigkeiten automatisch. Manuell:
 
 ```bash
-sudo adduser <username> staff
+sudo apt install cec-utils chromium-browser python3-requests python3-yaml
+# nur für cec_mode = 2
+sudo apt install libcec-dev build-essential python3-dev
+sudo pip3 install cec  # ggf. mit --break-system-packages
 ```
-
-hinzugefügt werden.
 
 ## Installation
 

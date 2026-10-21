@@ -1,8 +1,21 @@
 import fileinput
 import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
+
+
+CHROMIUM_EXECUTABLES = ["chromium-browser", "chromium"]
+
+
+def find_chromium_executable():
+    for executable in CHROMIUM_EXECUTABLES:
+        path = shutil.which(executable)
+        if path:
+            return path
+    raise FileNotFoundError(
+        "Chromium not found, tried: " + ", ".join(CHROMIUM_EXECUTABLES))
 
 
 class ChromiumBrowserController:
@@ -19,7 +32,7 @@ class ChromiumBrowserController:
         self._delete_crash_exit()
         self._process = subprocess.Popen(
             [
-                "/usr/bin/chromium-browser",
+                find_chromium_executable(),
                 "--display=:0",
                 "--noerrdialogs",
                 "--disable-session-restore",
