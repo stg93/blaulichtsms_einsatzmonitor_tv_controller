@@ -1,12 +1,13 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pprint import pformat
+from typing import Any
 
 import requests
 
 
 class BlaulichtSmsSessionInitException(Exception):
-    pass
+    """Raised if no session can be created because the API is not reachable."""
 
 
 class BlaulichtSmsController:
@@ -15,8 +16,24 @@ class BlaulichtSmsController:
     <https://github.com/blaulichtSMS/docs/blob/master/dashboard_api_v1.md>`_
     """
 
-    def __init__(self, customer_id, username, password, alarm_duration=3600, show_infos=False,
-                 base_url="https://api.blaulichtsms.net/blaulicht/api/alarm/v1/dashboard/"):
+    def __init__(
+        self,
+        customer_id: str,
+        username: str,
+        password: str,
+        alarm_duration: int = 3600,
+        show_infos: bool = False,
+        base_url: str = "https://api.blaulichtsms.net/blaulicht/api/alarm/v1/dashboard/",
+    ) -> None:
+        """Initializes the controller without contacting the API.
+
+        :param customer_id: The blaulichtSMS customer id
+        :param username: The blaulichtSMS Einsatzmonitor username
+        :param password: The blaulichtSMS Einsatzmonitor password
+        :param alarm_duration: Seconds an alarm stays active after it was raised
+        :param show_infos: Whether infos count as alarms
+        :param base_url: The base URL of the Dashboard API, ending with a slash
+        """
         self.logger = logging.getLogger(__name__)
 
         self.customer_id = customer_id
@@ -26,19 +43,20 @@ class BlaulichtSmsController:
         self.show_infos = show_infos
         self.base_url = base_url
 
-        self._session_token = None
+        self._session_token: str | None = None
 
-    def get_session(self):
+    def get_session(self) -> str | None:
         """Gets a new session token from the blaulichtSMS Dashboard API at every call.
 
-        :return: The session token
+        :return: The session token, or None if the login failed
+        :raises BlaulichtSmsSessionInitException: If the API is not reachable
         """
         try:
             self.logger.info("Initializing blaulichtSMS session...")
             content = {
                 "customerId": self.customer_id,
                 "username": self.username,
-                "password": self.password
+                "password": self.password,
             }
             response = requests.post(self.base_url + "login", json=content)
             session_id = response.json()["sessionId"]
@@ -50,8 +68,14 @@ class BlaulichtSmsController:
         except requests.exceptions.ConnectionError as e:
             raise BlaulichtSmsSessionInitException() from e
 
-    def _get_alarms(self):
-        """Gets the alarms from the blaulichtSMS Dashboard API"""
+    def _get_alarms(self) -> list[dict[str, Any]] | None:
+        """Gets the alarms from the blaulichtSMS Dashboard API.
+
+        Creates a session first if there is none yet.
+
+        :return: The alarms (and infos if :show_infos: is set),
+            or None if the API is not reachable
+        """
         if not self._session_token:
             self._session_token = self.get_session()
 
@@ -66,10 +90,12 @@ class BlaulichtSmsController:
                 alarms += response_json.get("infos", [])
             return alarms
         except requests.exceptions.ConnectionError:
-            self.logger.error("Failed to request blaulichtSMS alarms. Maybe there is no internet connection.")
+            self.logger.error(
+                "Failed to request blaulichtSMS alarms. Maybe there is no internet connection."
+            )
             return None
 
-    def is_alarm(self):
+    def is_alarm(self) -> bool:
         """Checks if there is any active alarm.
 
         An alarm is active if it's datetime is greater than or equals the current datetime minus :alarm_duration:.
@@ -82,9 +108,11 @@ class BlaulichtSmsController:
         if not alarms:
             return False
         for alarm in alarms:
-            alarm_datetime = datetime.strptime(alarm["alarmDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            alarm_datetime = datetime.strptime(
+                alarm["alarmDate"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            ).replace(tzinfo=UTC)
             self.logger.debug("Alarm " + str(alarm["alarmId"]) + " on " + str(alarm_datetime))
-            if alarm_datetime >= datetime.utcnow() - self.alarm_duration:
+            if alarm_datetime >= datetime.now(UTC) - self.alarm_duration:
                 self.logger.debug("Alarm " + str(alarm["alarmId"]) + " is active")
                 self.logger.info("There is an active alarm")
                 return True

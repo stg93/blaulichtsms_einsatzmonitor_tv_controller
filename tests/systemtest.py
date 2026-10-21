@@ -3,15 +3,19 @@ from multiprocessing import Process
 
 from blaulichtsmscontroller import BlaulichtSmsController
 from chromiumbrowsercontroller import ChromiumBrowserController
-from main import get_logging_config, set_up_logging, get_cec_controller
+from main import get_cec_controller, get_logging_config, set_up_logging
 from tests import dashboardapimock
 from tests.alarmmonitortest import AlarmMonitorTest
-from tests.dashboardapimock import app, Alarm
+from tests.dashboardapimock import Alarm, app
 
 logger = None
 
 
-def generate_test_summary(logging_output_file):
+def generate_test_summary(logging_output_file: str) -> None:
+    """Counts the errors and warnings in the test log and prints the summary.
+
+    :param logging_output_file: The path of the test log
+    """
     error_count = 0
     warning_count = 0
     with open(logging_output_file) as file:
@@ -24,27 +28,39 @@ def generate_test_summary(logging_output_file):
     _print_test_summary(error_count, warning_count, logging_output_file)
 
 
-def _print_test_summary(error_count, warning_count, logging_output_file):
-    print("")
+def _print_test_summary(error_count: int, warning_count: int, logging_output_file: str) -> None:
+    """Prints the expected behaviour and the results of the system test.
+
+    :param error_count: The number of errors in the log
+    :param warning_count: The number of warnings in the log
+    :param logging_output_file: The path of the test log
+    """
+    print()
     print("######## TEST FINISHED ########")
     print("Expected behaviour:")
-    print("")
-    print("  * Starts a Chromium browser instance which is displaying the blaulichtSMS Einsatzmonitor.")
+    print()
+    print(
+        "  * Starts a Chromium browser instance which is displaying the blaulichtSMS Einsatzmonitor."
+    )
     print("  * Requests three times alarms from the blaulichtSMS mock API, with no active alarms.")
     print("  * Receives an active alarm at the fourth API request and powers the HDMI device on.")
-    print("  * After 30 seconds the alarm is no longer active and the HDMI device switches to standby.")
+    print(
+        "  * After 30 seconds the alarm is no longer active and the HDMI device switches to standby."
+    )
     print("  * Requests some more alarms without any active alarms.")
-    print("  * Shuts down the alarm monitor and prints this summary containing the number of errors and warnings")
+    print(
+        "  * Shuts down the alarm monitor and prints this summary containing the number of errors and warnings"
+    )
     print("    and the path to the log of the test.")
-    print("")
+    print()
     print("Errors:   " + str(error_count))
     print("Warnings: " + str(warning_count))
-    print("")
-    print("Log is written to '{}'".format(logging_output_file))
+    print()
+    print(f"Log is written to '{logging_output_file}'")
     print("###############################")
 
 
-def main():
+def main() -> None:
     """Runs a system test for the alarm monitor.
 
     Expected behaviour:
@@ -77,18 +93,23 @@ def main():
         config["blaulichtSMS Einsatzmonitor"]["username"],
         config["blaulichtSMS Einsatzmonitor"]["password"],
         alarm_duration=alarm_duration,
-        base_url="http://localhost:5000/"
+        base_url="http://localhost:5000/",
     )
     hdmi_cec_controller = get_cec_controller(config, False, None)
     browser_controller = ChromiumBrowserController(mock_blaulichtsms_controller.get_session())
 
-    alarm_monitor_test = AlarmMonitorTest(polling_interval, mock_blaulichtsms_controller, hdmi_cec_controller,
-                                          browser_controller, api_requests_count)
+    alarm_monitor_test = AlarmMonitorTest(
+        polling_interval,
+        mock_blaulichtsms_controller,
+        hdmi_cec_controller,
+        browser_controller,
+        api_requests_count,
+    )
     alarm_monitor_test.run()
 
     server_mock.terminate()
     generate_test_summary(logging_config["handlers"]["file"]["filename"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
